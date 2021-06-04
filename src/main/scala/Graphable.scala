@@ -27,38 +27,15 @@ import java.io.BufferedWriter
  */
 trait Graphable[S,T] {
 
-  var graphvizOptions:GraphvizOptions = summon[GraphvizOptions]
-
   /** Use Graphviz to render this object (in the default format) to the
    *  given file.
    */
   def graphviz(fileRoot:String):Unit = {
-    val options = graphvizOptions
-    options.sourceFile = fileRoot + ".dot"
-    options.outputFile = fileRoot + ".pdf"
-    graphviz(options)
+    graphviz()
   }
 
   /** Use Graphviz to render this object as specified. */
-  def graphviz(options:GraphvizOptions):Unit = {
-    val file = new File(options.sourceFile)
-    val bw = new BufferedWriter(new FileWriter(file))
-    bw.write("digraph finite_state_machine {\n")
-    bw.write("\tmargin=\"")
-    bw.write(options.margin.toString())
-    bw.write("\"; fontsize=\"")
-    bw.write(options.fontSize.toString())
-    bw.write("\"; rankdir=LR; \tsize=\"8,5\"\n")
-    bw.write("}\n")
-    bw.close()
-
-    val cmd = Seq(options.executable,
-                  "-T" + options.format,
-                  "-o" + options.outputFile,
-                  options.sourceFile)
-    cmd !
-
-    if (!options.keepDOT) file.delete()
+  def graphviz():Unit = {
   }
 }
 
@@ -79,38 +56,14 @@ trait Grapher[X,S,T] {
    */
   def toDOT(x:X):String
 
-  var graphvizOptions:GraphvizOptions = summon[GraphvizOptions]
-
   /** Use Graphviz to render this object (in the default format) to the
    *  given file.
    */
   def graphviz(fileRoot:String, x:X):Unit = {
-    val options = graphvizOptions
-    options.sourceFile = fileRoot + ".dot"
-    options.outputFile = fileRoot + ".pdf"
-    graphviz(options, x)
   }
 
   /** Use Graphviz to render this object as specified.
    */
-  def graphviz(options:GraphvizOptions, x:X):Unit = {
-    val file = new File(options.sourceFile)
-    val bw = new BufferedWriter(new FileWriter(file))
-    bw.write("digraph finite_state_machine {\n")
-    bw.write("\tmargin=\"")
-    bw.write(options.margin.toString())
-    bw.write("\"; fontsize=\"")
-    bw.write(options.fontSize.toString())
-    bw.write("\"; rankdir=LR; \tsize=\"8,5\"\n")
-    bw.write("}\n")
-    bw.close()
-
-    val cmd = Seq(options.executable,
-                  "-T" + options.format,
-                  "-o" + options.outputFile,
-                  options.sourceFile)
-    cmd !
-
-    if (!options.keepDOT) file.delete()
+  def graphviz(x:X):Unit = {
   }
 }
