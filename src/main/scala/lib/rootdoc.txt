@@ -1,0 +1,46 @@
+Various utilities, organized into several packages.
+
+=Structured text and formatted output=
+
+ - [[org.maraist.graphviz]] - Bindings to the GraphViz utility for
+   rendering graphs.
+   
+ - [[org.maraist.html]] - Describing the formatting of objects as HTML
+   with a {@code toHTML} method analogous to {@code toString}.  Really
+   just two traits at this point.
+ 
+ - [[org.maraist.latex]] - Describing the formatting of objects as
+   LaTeX with a {@code toLaTeX} method analogous to {@code toString}.
+ 
+ - [[org.maraist.outlines]] - A simple model of text structured as
+   nested outlines.
+   
+=Search algorithms=
+
+Implementations of selected algorithms from Russell and Norvig's text.
+Most algorithm-implementing classes are structured so that behavior
+can be customized via constructor arguments.
+
+ - [[org.maraist.search.graph]] - Graph search algorithms including A*
+   and BFS.
+   
+ - [[org.maraist.search.local]] - Local search algorithms including
+   beam search and stochastic beam search.
+   
+ - [[org.maraist.search.csp]] - Algorithms for search-based solutions
+   to constraint-solving problems.
+   
+ - [[org.maraist.search]] - Umbrella package for common generalizing
+   traits and exceptions.
+ 
+=Automata=
+ 
+ - [[org.maraist.fa]] - Finite automata and various extensions, most
+   including implementations of Rabin-Scott where appropriate for
+   conversion from nondeterministic to deterministic representations.
+
+=Miscellaneous utilities=
+
+ - [[org.maraist.util]]
+
+
