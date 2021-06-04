@@ -1,9 +1,9 @@
 
 package org.maraist.planrec.rules
+trait Term[TermType]
+trait PositionImpl[T<:Term[T], RuleType[X<:Term[X]], PosType[Y<:Term[Y]]] {}
 
-trait PositionImpl[T, RuleType[X], PosType[Y]] {}
-
-sealed abstract class Item[T] { }
+sealed abstract class Item[T<:Term[T]]
 
 object Item {
   /** Public pseudoconstructor for creating [[Item]] instances.
@@ -14,6 +14,6 @@ object Item {
     * @tparam P Constructor for the type of position marker in this
     * item.
     */
-  def apply[T, R[_], P[_]](r: R[T], p: P[T])
+  def apply[T<:Term[T], R[_], P[_]](r: R[T], p: P[T])
     (using PositionImpl[T, R, P]): Item[T] = new Item[T] { }
 }
