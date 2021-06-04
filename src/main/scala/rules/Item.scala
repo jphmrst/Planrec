@@ -1,7 +1,7 @@
 
 package org.maraist.planrec.rules
 
-trait PositionImpl[T, RuleType[X<:Term[X]], PosType[Y<:Term[Y]]] {}
+trait PositionImpl[T, RuleType[X], PosType[Y]] {}
 
 sealed abstract class Item[T] { }
 
