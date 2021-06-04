@@ -1,0 +1,9 @@
+Plan recognition tools
+
+ - [[org.maraist.planrec.rules]] - Plan rules and libraries.
+   
+ - [[org.maraist.planrec.yr]] - Implementation of the YR algorithm -
+   in progress
+   
+ - [[org.maraist.planrec.yappr]] - Implementation of the Yappr
+   algorithm - future implementation
