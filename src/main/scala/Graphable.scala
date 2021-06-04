@@ -26,36 +26,21 @@ import java.io.BufferedWriter
  * both have defaults provided in this trait.
  */
 trait Graphable[S,T] {
-  /**
-   *  Return the inner lines of a digraph block (or other Graphviz style)
-   *  to render this object.
-   */
-  def toDOT(nodeLabeling:NodeLabeling[S] = this.nodeLabeling,
-            transitionLabeling:TransitionLabeling[T] =
-              this.transitionLabeling):String
 
   var graphvizOptions:GraphvizOptions = summon[GraphvizOptions]
-  var nodeLabeling:NodeLabeling[S] = summon[NodeLabeling[S]]
-  var transitionLabeling:TransitionLabeling[T] =
-    summon[TransitionLabeling[T]]
 
   /** Use Graphviz to render this object (in the default format) to the
    *  given file.
    */
-  def graphviz(fileRoot:String,
-               nodeLabeling:NodeLabeling[S] = this.nodeLabeling,
-               transitionLabeling:TransitionLabeling[T] =
-                 this.transitionLabeling):Unit = {
+  def graphviz(fileRoot:String):Unit = {
     val options = graphvizOptions
     options.sourceFile = fileRoot + ".dot"
     options.outputFile = fileRoot + ".pdf"
-    graphviz(options, nodeLabeling, transitionLabeling)
+    graphviz(options)
   }
 
   /** Use Graphviz to render this object as specified. */
-  def graphviz(options:GraphvizOptions,
-               nodeLabeling:NodeLabeling[S],
-               transitionLabeling:TransitionLabeling[T]):Unit = {
+  def graphviz(options:GraphvizOptions):Unit = {
     val file = new File(options.sourceFile)
     val bw = new BufferedWriter(new FileWriter(file))
     bw.write("digraph finite_state_machine {\n")
@@ -64,7 +49,6 @@ trait Graphable[S,T] {
     bw.write("\"; fontsize=\"")
     bw.write(options.fontSize.toString())
     bw.write("\"; rankdir=LR; \tsize=\"8,5\"\n")
-    bw.write(toDOT(nodeLabeling, transitionLabeling))
     bw.write("}\n")
     bw.close()
 
@@ -93,34 +77,23 @@ trait Grapher[X,S,T] {
    *  Return the inner lines of a digraph block (or other Graphviz style)
    *  to render an object.
    */
-  def toDOT(x:X,
-            nodeLabeling:NodeLabeling[S] = this.nodeLabeling,
-            transitionLabeling:TransitionLabeling[T] =
-              this.transitionLabeling):String
+  def toDOT(x:X):String
 
-  var nodeLabeling:NodeLabeling[S] = summon[NodeLabeling[S]]
-  var transitionLabeling:TransitionLabeling[T] =
-    summon[TransitionLabeling[T]]
   var graphvizOptions:GraphvizOptions = summon[GraphvizOptions]
 
   /** Use Graphviz to render this object (in the default format) to the
    *  given file.
    */
-  def graphviz(fileRoot:String, x:X,
-               nodeLabeling:NodeLabeling[S] = this.nodeLabeling,
-               transitionLabeling:TransitionLabeling[T] =
-                 this.transitionLabeling):Unit = {
+  def graphviz(fileRoot:String, x:X):Unit = {
     val options = graphvizOptions
     options.sourceFile = fileRoot + ".dot"
     options.outputFile = fileRoot + ".pdf"
-    graphviz(options, x, nodeLabeling, transitionLabeling)
+    graphviz(options, x)
   }
 
   /** Use Graphviz to render this object as specified.
    */
-  def graphviz(options:GraphvizOptions, x:X,
-               nodeLabeling:NodeLabeling[S],
-               transitionLabeling:TransitionLabeling[T]):Unit = {
+  def graphviz(options:GraphvizOptions, x:X):Unit = {
     val file = new File(options.sourceFile)
     val bw = new BufferedWriter(new FileWriter(file))
     bw.write("digraph finite_state_machine {\n")
@@ -129,7 +102,6 @@ trait Grapher[X,S,T] {
     bw.write("\"; fontsize=\"")
     bw.write(options.fontSize.toString())
     bw.write("\"; rankdir=LR; \tsize=\"8,5\"\n")
-    bw.write(toDOT(x, nodeLabeling, transitionLabeling))
     bw.write("}\n")
     bw.close()
 
