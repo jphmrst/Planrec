@@ -30,8 +30,12 @@ class YRSession[T] extends RecognitionSession[T, YRExpl] {
 class YRExpl[T] extends Explanation[T] {
 }
 
+class YRErr[T, H] extends RuntimeException {
+}
+
 object YR
-    extends Recognizer[HTNrule, HTNLib, TablesLib, YRSession, YRExpl] {
+    extends Recognizer[HTNrule, HTNLib, TablesLib, YRSession, YRExpl, YRErr] {
+  override def validLibrary[T, H](lib: HTNLib[T, H]): List[YRErr[T, H]] = ???
   override def prepareLibrary[T,H](lib: HTNLib[T, H]): TablesLib[T, H] = ???
 }
 
