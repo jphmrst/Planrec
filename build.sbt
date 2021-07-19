@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
 )
 
 Compile / doc / scalacOptions ++= Seq(
-  "-doc-root-content", "src/main/rootdoc.txt",
+  "-doc-root-content", "rootdoc.txt",
   "-groups"
 )
 
