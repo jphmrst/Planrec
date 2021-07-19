@@ -30,8 +30,12 @@ class YapprSession[T] extends RecognitionSession[T, YapprExpl] {
 class YapprExpl[T] extends Explanation[T] {
 }
 
-object Yappr
-    extends Recognizer[HTNrule, HTNLib, PFFGlib, YapprSession, YapprExpl] {
+class YapprErr[T, H] extends RuntimeException {
+}
+
+object Yappr extends Recognizer
+  [HTNrule, HTNLib, PFFGlib, YapprSession, YapprExpl, YapprErr] {
+  override def validLibrary[T, H](lib: HTNLib[T, H]): List[YapprErr[T, H]] = ???
   override def prepareLibrary[T,H](lib: HTNLib[T, H]): PFFGlib[T, H] = ???
 }
 
