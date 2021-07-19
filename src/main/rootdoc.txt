@@ -2,8 +2,13 @@ Plan recognition tools
 
  - [[org.maraist.planrec.rules]] - Plan rules and libraries.
    
- - [[org.maraist.planrec.yr]] - Implementation of the YR algorithm -
-   in progress
+ - Implementation of the YR algorithm *in progress*
+   - [[org.maraist.planrec.yr.table]] - Tables
    
  - [[org.maraist.planrec.yappr]] - Implementation of the Yappr
    algorithm - future implementation
+
+Libraries
+
+ - [[org.maraist.fa]] - Finite automata and extensions
+   
