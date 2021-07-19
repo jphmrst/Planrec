@@ -98,13 +98,21 @@ trait Explanation[T] {
   * observations.
   * @tparam EX Type constructor over terms for explanations for
   * observations.
+  * @tparam ERR Representation of algorithm-specific error messages.
   */
 trait Recognizer[
   R[T,H] <: RuleForm[T, H],
   PL[T,H] <: PlanLibrary[R, T, H],
   PPL[T,H] <: PreparedPlanLibrary[R, PL, T, H, RS, EX],
   RS[T] <: RecognitionSession[T, EX],
-  EX[T] <: Explanation[T]]{
+  EX[T] <: Explanation[T],
+  ERR[T,H] <: RuntimeException]{
+
+  /** Diagnose whether a plan library is valid for this algorithm.
+    * @return An empty list when the library *is* valid for this
+    * algorithm.
+    */
+  def validLibrary[T, H](lib: PL[T, H]): List[ERR[T, H]]
 
   /** Precompile a plan library to collect any additional artifacts
     * required for this recognition algorithm.
