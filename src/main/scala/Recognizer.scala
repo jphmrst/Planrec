@@ -18,17 +18,37 @@ import org.maraist.planrec.terms.TermImpl
   * @tparam T The type of term being declared.
   * @tparam H The type of term head associated with these terms.
   */
-trait PlanLibrary[R[_,_], T, H] {
+trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
   /** The rules contained in this plan library. */
   def rules: Set[R[T, H]]
+
+  /** Retrieve the rules associated with a particular goal head. */
+  def rules(h: H): Set[R[T, H]]
+
+  /** Set of all rule goal terms. */
+  def ruleGoals: Set[T] = {
+    val res = Set.newBuilder[T]
+    for (r <- rules) { res += r.goal }
+    res.result()
+  }
+
+  /** Set of all rule goal heads. */
+  def ruleGoalHeads(using impl: TermImpl[T, H, ?]): Set[H] = {
+    val res = Set.newBuilder[H]
+    for (g <- ruleGoals) { res += impl.head(g) }
+    res.result()
+  }
+
   /** The top-level goals which may be taken as an intention of an
     * actor.
     */
   def top: Seq[H]
+
   /** Probabilities of the respective top-level goals.  The `top` and
     * `probs` collections must have the same size.
     */
   def probs: Seq[Double]
+
   /** Set of head components of terms in this library. */
   def heads: Set[H]
 
