@@ -13,12 +13,12 @@ import org.maraist.planrec.
   {Recognizer, PreparedPlanLibrary, RecognitionSession, Explanation}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
+import java.util.Queue
 
-class PFFGlib[T, H]
+class PFFGlib[T, H](override val lib: HTNLib[T, H])
 extends PreparedPlanLibrary[
   HTNrule, HTNLib, T, H, YapprSession, YapprExpl
 ] {
-  def lib: HTNLib[T, H] = ???
   def newSession: YapprSession[T] = ???
 }
 
@@ -30,12 +30,26 @@ class YapprSession[T] extends RecognitionSession[T, YapprExpl] {
 class YapprExpl[T] extends Explanation[T] {
 }
 
-class YapprErr[T, H] extends RuntimeException {
+class YapprErr[T, H](s: String) extends RuntimeException(s) {
+}
+
+object YapprErrs {
+  class MultiYapprErrs[T,H](val errs: Seq[YapprErr[T,H]])
+      extends YapprErr("Multiple exceptions")
+  class UnguardedLibraryRecursion[T,H](val onTerm: T)
+      extends YapprErr("Unguarded recursion inplan library.")
 }
 
 object Yappr extends Recognizer
   [HTNrule, HTNLib, PFFGlib, YapprSession, YapprExpl, YapprErr] {
-  override def validLibrary[T, H](lib: HTNLib[T, H]): List[YapprErr[T, H]] = ???
+  override def validLibrary[T, H](lib: HTNLib[T, H]): List[YapprErr[T, H]] = {
+    val visited: Set[T] = Set()
+    for (top <- ???) {
+      val queue: Queue[T] = new Queue
+      queue += ???
+      ???
+    }
+  }
   override def prepareLibrary[T,H](lib: HTNLib[T, H]): PFFGlib[T, H] = ???
 }
 
