@@ -11,6 +11,7 @@
 package org.maraist.planrec
 import scala.collection.mutable.Builder
 import org.maraist.planrec.rules.RuleForm
+import org.maraist.planrec.terms.TermImpl
 
 /** Trait marking plan libraries collecting rules.
   * @tparam R Type constructor for the rules in this library
@@ -52,9 +53,11 @@ trait PreparedPlanLibrary[
   T, H,
   RS[Y] <: RecognitionSession[Y, EX],
   EX[X] <: Explanation[X]
-] {
+](using impl: TermImpl[T, H, ?]) {
+
   /** Underlying plan library. */
   def lib: L[T, H]
+
   /** Create a new stateful object for assembling explanations from a
     * sequence of observations.
     */
@@ -68,7 +71,8 @@ trait PreparedPlanLibrary[
   * @tparam EX Type constructor over terms for explanations for
   * observations.
   */
-trait RecognitionSession[T, EX[X] <: Explanation[X]] extends Builder[T,EX[T]] {
+trait RecognitionSession[T, EX[X] <: Explanation[X]]
+    extends Builder[T,EX[T]] {
   /** By default we do not expect the `clear` method to be supported. */
   override def clear(): Unit =
     throw new UnsupportedOperationException("clear() not supported")
