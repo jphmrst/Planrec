@@ -56,9 +56,6 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
   // probabilities are the same
   if (top.size != probs.size) then throw new IllegalArgumentException(
     "Collections top and probs must be the same size")
-
-  /** Set of head components of terms in this library. */
-  def heads: Set[H]
 }
 
 /** Trait marking the precompiled/otherwise prepared version of a plan
