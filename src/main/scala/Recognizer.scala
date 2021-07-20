@@ -54,6 +54,10 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
 
   // Verify that the sequences of top-level goals and top-level goal
   // probabilities are the same
+  //
+  // Commented-out for now --- trait init happens too early.
+  // Relocate?
+  //
   // if (top.size != probs.size) then throw new IllegalArgumentException(
   //   "Collections top and probs must be the same size")
 }
