@@ -116,16 +116,18 @@ trait Recognizer[
     * @return An empty list when the library *is* valid for this
     * algorithm.
     */
-  def validLibrary[T, H](lib: PL[T, H]): List[ERR[T, H]]
+  def validLibrary[T, H](lib: PL[T, H])(using impl: TermImpl[T, H, ?]):
+      List[ERR[T, H]]
 
   /** Precompile a plan library to collect any additional artifacts
     * required for this recognition algorithm.
     */
-  def prepareLibrary[T,H](lib: PL[T, H]): PPL[T, H]
+  def prepareLibrary[T,H](lib: PL[T, H])(using impl: TermImpl[T, H, ?]):
+      PPL[T, H]
 
   /** Attach the precompilation method to the plan library type.
     */
-  extension [T, H](library: PL[T, H]) {
+  extension [T, H](library: PL[T, H])(using impl: TermImpl[T, H, ?]) {
     def prepare: PPL[T, H] = prepareLibrary(library)
   }
 }
