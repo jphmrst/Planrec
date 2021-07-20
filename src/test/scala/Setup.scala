@@ -13,8 +13,6 @@ import scala.collection.immutable.{Seq,IndexedSeq}
 
 object RuleItemSamples1 {
   import org.maraist.planrec.rules.{One,All,Act}
-  import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
-  import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.StringAsTerm
 
   val aa = Act[String, String]("A", "a")
@@ -24,17 +22,5 @@ object RuleItemSamples1 {
   val pp = One[String, String]("P", Seq("A", "C"), Seq(0.3, 0.7))
   val mm = All[String, String]("M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
   val rr = All[String, String]("R", IndexedSeq("N", "P"), Array[(Int,Int)]())
-
-  val rInitial = AllItem(rr, Set(0, 1))
-  val rThenN = AllItem(rr, Set(1))
-  val rThenP = AllItem(rr, Set(0))
-  val rComplete = AllItem(rr, Set())
-
-  val mInitial = AllItem(mm, Set(0))
-
-  val nInitial = OneItem(nn, false)
-
-  val aBefore = ActItem(aa, false)
-  val aAfter = ActItem(aa, true)
 }
 
