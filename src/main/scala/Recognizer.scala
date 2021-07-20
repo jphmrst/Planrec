@@ -49,6 +49,9 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
     */
   def probs: Seq[Double]
 
+  /** Set of head components of terms in this library. */
+  def heads: Set[H]
+
   // Verify that the sequences of top-level goals and top-level goal
   // probabilities are the same
   if (top.size != probs.size) then throw new IllegalArgumentException(
