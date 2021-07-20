@@ -89,6 +89,9 @@ class HTNLib[T, H](
     "Must have the same number of top-level goals and top-level goal "
       + "probabilities")
 
+  def rules(h: H): Set[HTNrule[T, H]] =
+    for(r <- rules; if r.goal.termHead == h) yield r
+
   /**
     * Normalized probabilities of each subgoal.
     */

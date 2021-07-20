@@ -21,19 +21,27 @@ import org.maraist.planrec.terms.TermImpl
 trait PlanLibrary[R[_,_], T, H] {
   /** The rules contained in this plan library. */
   def rules: Set[R[T, H]]
+
+  /** Retrieve the rules associated with a particular goal head. */
+  def rules(h: H): Set[R[T, H]]
+
   /** The top-level goals which may be taken as an intention of an
     * actor.
     */
   def top: Seq[H]
+
   /** Probabilities of the respective top-level goals.  The `top` and
     * `probs` collections must have the same size.
     */
   def probs: Seq[Double]
-  /** Set of head components of terms in this library. */
-  def heads: Set[H]
 
+  // Verify that the sequences of top-level goals and top-level goal
+  // probabilities are the same
   if (top.size != probs.size) then throw new IllegalArgumentException(
     "Collections top and probs must be the same size")
+
+  /** Set of head components of terms in this library. */
+  def heads: Set[H]
 }
 
 /** Trait marking the precompiled/otherwise prepared version of a plan
