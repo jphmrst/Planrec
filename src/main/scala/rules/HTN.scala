@@ -15,6 +15,7 @@ import org.maraist.util.Collections.normalizeSeq
 /** Common trait of all rules. */
 trait RuleForm[T, H](using TermImpl[T,H,?]) {
   def goal: T
+  def unblockedSubgoals: Set[T]
 }
 
 /** An "and-rule", indicating that a goal can be fulfilled by meeting
@@ -35,6 +36,22 @@ case class All[T, H](
     else if after >= subgoals.length || before < 0
     then throw IllegalArgumentException
                ("Ordered indices must refer to subgoal index")
+  }
+
+  def unblockedSubgoals: Set[T] = unblockedSubgoalIndices.map(subgoals(_))
+
+  def unblockedSubgoalIndices: Set[Int] = {
+    val blocked = {
+      val blockedBuilder = Set.newBuilder[Int]
+      for ((_, after) <- order) { blockedBuilder += after }
+      blockedBuilder.result()
+    }
+
+    val res = Set.newBuilder[Int]
+    for (i <- 0 until subgoals.size; if !(blocked.contains(i))) {
+      res += i
+    }
+    res.result()
   }
 }
 
@@ -60,13 +77,17 @@ case class One[T, H](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Double
     * Normalized probabilities of each subgoal.
     */
   val probs: Seq[Double] = normalizeSeq(subgoalProbs)
+
+  def unblockedSubgoals: Set[T] = Set.from(subgoals)
 }
 
 /** A "terminal rule," indicating that a goal corresponds to a simple
   * action.
   */
 case class Act[T, H](val goal: T, val action: T)(using TermImpl[T, H, ?])
-    extends RuleForm[T, H]
+    extends RuleForm[T, H] {
+  def unblockedSubgoals: Set[T] = Set.empty
+}
 
 object HTN {
   export org.maraist.planrec.rules.All
