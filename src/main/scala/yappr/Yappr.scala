@@ -9,13 +9,15 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.yappr
+import scala.collection.mutable.Queue
 import org.maraist.planrec.
   {Recognizer, PreparedPlanLibrary, RecognitionSession, Explanation}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
-import java.util.Queue
+import org.maraist.planrec.terms.TermImpl
 
 class PFFGlib[T, H](override val lib: HTNLib[T, H])
+  (using impl: TermImpl[T, H, ?])
 extends PreparedPlanLibrary[
   HTNrule, HTNLib, T, H, YapprSession, YapprExpl
 ] {
@@ -42,14 +44,19 @@ object YapprErrs {
 
 object Yappr extends Recognizer
   [HTNrule, HTNLib, PFFGlib, YapprSession, YapprExpl, YapprErr] {
-  override def validLibrary[T, H](lib: HTNLib[T, H]): List[YapprErr[T, H]] = {
+  override def validLibrary[T, H](lib: HTNLib[T, H])
+    (using impl: TermImpl[T, H, ?]): List[YapprErr[T, H]] = {
     val visited: Set[T] = Set()
-    for (top <- ???) {
-      val queue: Queue[T] = new Queue
-      queue += ???
-      ???
-    }
+    // for (top <- List()) {
+    //   val queue: Queue[T] = new Queue[T]
+    //   // queue.enqueue(???)
+    //   ???
+    // }
+
+    ???
   }
-  override def prepareLibrary[T,H](lib: HTNLib[T, H]): PFFGlib[T, H] = ???
+  override def prepareLibrary[T,H](lib: HTNLib[T, H])
+    (using impl: TermImpl[T, H, ?]):
+      PFFGlib[T, H] = ???
 }
 
