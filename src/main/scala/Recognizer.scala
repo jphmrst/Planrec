@@ -54,8 +54,8 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
 
   // Verify that the sequences of top-level goals and top-level goal
   // probabilities are the same
-  if (top.size != probs.size) then throw new IllegalArgumentException(
-    "Collections top and probs must be the same size")
+  // if (top.size != probs.size) then throw new IllegalArgumentException(
+  //   "Collections top and probs must be the same size")
 }
 
 /** Trait marking the precompiled/otherwise prepared version of a plan
@@ -133,6 +133,15 @@ trait Recognizer[
   RS[T] <: RecognitionSession[T, EX],
   EX[T] <: Explanation[T],
   ERR[T,H] <: RuntimeException]{
+
+  /** Diagnose whether a plan library is valid for this algorithm.
+    * @return `true` if `lib` is valid.
+    */
+  def isValidLibrary[T, H](lib: PL[T, H])(using impl: TermImpl[T, H, ?]):
+      Boolean = validLibrary(lib) match {
+    case Nil => true
+    case _ => false
+  }
 
   /** Diagnose whether a plan library is valid for this algorithm.
     * @return An empty list when the library *is* valid for this
