@@ -74,7 +74,7 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y,S], T, H, S] {
   * observations.
   */
 trait PreparedPlanLibrary[
-  R[M, N] <: RuleForm[M,N,S],
+  R[M, N] <: RuleForm[M, N, S],
   L[Y, Z] <: PlanLibrary[R, Y, Z, S],
   T, H,
   RS[Y] <: RecognitionSession[Y, EX],
