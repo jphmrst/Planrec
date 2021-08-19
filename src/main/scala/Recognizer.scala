@@ -22,8 +22,11 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y,S], T, H, S] {
   /** The rules contained in this plan library. */
   def rules: Set[R[T, H]]
 
-  /** Retrieve the rules associated with a particular goal head. */
-  def rules(h: H): Set[R[T, H]]
+  /** Retrieve the rules associated with a particular goal head.
+    * @param h Head term of rules query.
+    */
+  def rules(h: H)(using impl: TermImpl[T,H,S]): Set[R[T, H]] =
+    for (rule <- rules; if impl.head(rule.goal).equals(h)) yield rule
 
   /** Set of all rule goal terms. */
   def ruleGoals: Set[T] = {
