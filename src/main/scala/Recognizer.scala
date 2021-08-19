@@ -18,7 +18,7 @@ import org.maraist.planrec.terms.TermImpl
   * @tparam T The type of term being declared.
   * @tparam H The type of term head associated with these terms.
   */
-trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
+trait PlanLibrary[R[X,Y] <: RuleForm[X,Y,S], T, H, S] {
   /** The rules contained in this plan library. */
   def rules: Set[R[T, H]]
 
@@ -74,11 +74,12 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y], T, H] {
   * observations.
   */
 trait PreparedPlanLibrary[
-  R[M, N] <: RuleForm[M,N],
-  L[Y, Z] <: PlanLibrary[R, Y, Z],
+  R[M, N] <: RuleForm[M,N, ?],
+  L[Y, Z] <: PlanLibrary[R, Y, Z, S],
   T, H,
   RS[Y] <: RecognitionSession[Y, EX],
-  EX[X] <: Explanation[X]
+  EX[X] <: Explanation[X],
+  S
 ](using impl: TermImpl[T, H, ?]) {
 
   /** Underlying plan library. */
@@ -131,12 +132,13 @@ trait Explanation[T] {
   * @tparam ERR Representation of algorithm-specific error messages.
   */
 trait Recognizer[
-  R[T,H] <: RuleForm[T, H],
-  PL[T,H] <: PlanLibrary[R, T, H],
-  PPL[T,H] <: PreparedPlanLibrary[R, PL, T, H, RS, EX],
+  R[T,H] <: RuleForm[T, H, S],
+  PL[T,H] <: PlanLibrary[R, T, H, S],
+  PPL[T,H] <: PreparedPlanLibrary[R, PL, T, H, RS, EX, S],
   RS[T] <: RecognitionSession[T, EX],
   EX[T] <: Explanation[T],
-  ERR[T,H] <: RuntimeException]{
+  ERR[T,H] <: RuntimeException,
+  S]{
 
   /** Diagnose whether a plan library is valid for this algorithm.
     * @return `true` if `lib` is valid.
