@@ -19,14 +19,18 @@ class YapprTests extends AnyFlatSpec with Matchers {
   import org.maraist.planrec.rules.{HTNLib, All, One, Act}
   import org.maraist.planrec.terms.String.StringAsTerm
 
-  def verifyBadLibrary(blurb: String, lib: HTNLib[String, String]): Unit =
+  def verifyBadLibrary(
+    blurb: String,
+    lib: HTNLib[String, String, Unit]
+  ): Unit =
+
     blurb `should` "be detected as invalid for Yappr" in {
       (Yappr.isValidLibrary(lib)) `should` be (false)
     }
 
   verifyBadLibrary(
     "Simple loop in All rule",
-    HTNLib[String, String](
+    HTNLib[String, String, Unit](
       Set(
         All("A", IndexedSeq("A"), Array.empty[(Int, Int)]),
       ),
@@ -35,7 +39,7 @@ class YapprTests extends AnyFlatSpec with Matchers {
     ))
   verifyBadLibrary(
     "Simple loop in One rule",
-    HTNLib[String, String](
+    HTNLib[String, String, Unit](
       Set(
         One("A", Seq("A", "B"), Seq[Double](0.3, 0.7)),
         Act("B", s"B"),

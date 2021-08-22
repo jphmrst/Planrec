@@ -12,18 +12,6 @@ package org.maraist.planrec.generaltest
 import scala.collection.immutable.{Seq,IndexedSeq}
 
 object RuleItemSamples1 {
-<<<<<<< HEAD
-  import org.maraist.planrec.rules.{One,All,Act}
-  import org.maraist.planrec.terms.Term.StringAsTerm
-
-  val aa = Act[String, String]("A", "a")
-  val bb = Act[String, String]("B", "b")
-  val cc = Act[String, String]("C", "c")
-  val nn = One[String, String]("N", Seq("A", "B"), Seq(0.4, 0.6))
-  val pp = One[String, String]("P", Seq("A", "C"), Seq(0.3, 0.7))
-  val mm = All[String, String]("M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
-  val rr = All[String, String]("R", IndexedSeq("N", "P"), Array[(Int,Int)]())
-=======
   import org.maraist.planrec.rules.{One,All,Act,HTNLib}
   // import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
   // import org.maraist.planrec.yr.table.Item.{all, one, act}
@@ -63,7 +51,5 @@ object RuleItemSamples1 {
     Seq('M'),
     Seq(1.0)
   )
-
->>>>>>> main
 }
 

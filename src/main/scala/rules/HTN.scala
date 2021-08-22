@@ -111,7 +111,7 @@ class HTNLib[T, H, S](
     "Must have the same number of top-level goals and top-level goal "
       + "probabilities")
 
-  def rules(h: H): Set[HTNrule[T, H]] =
+  def rules(h: H): Set[HTNrule[T, H, S]] =
     for(r <- rules; if r.goal.termHead == h) yield r
 
   /**
