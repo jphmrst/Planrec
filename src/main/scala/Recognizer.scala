@@ -36,7 +36,7 @@ trait PlanLibrary[R[X,Y,Z] <: RuleForm[X,Y,Z], T, H, S] {
   }
 
   /** Set of all rule goal heads. */
-  def ruleGoalHeads(using impl: TermImpl[T, H, ?]): Set[H] = {
+  def ruleGoalHeads(using impl: TermImpl[T, H, S]): Set[H] = {
     val res = Set.newBuilder[H]
     for (g <- ruleGoals) { res += impl.head(g) }
     res.result()
@@ -83,7 +83,7 @@ trait PreparedPlanLibrary[
   RS[Y] <: RecognitionSession[Y, EX],
   EX[X] <: Explanation[X],
   S
-](using impl: TermImpl[T, H, ?]) {
+](using impl: TermImpl[T, H, S]) {
 
   /** Underlying plan library. */
   def lib: L[T, H, S]
@@ -146,7 +146,7 @@ trait Recognizer[
   /** Diagnose whether a plan library is valid for this algorithm.
     * @return `true` if `lib` is valid.
     */
-  def isValidLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, ?]):
+  def isValidLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, S]):
       Boolean = validLibrary(lib) match {
     case Nil => true
     case _ => false
@@ -156,13 +156,13 @@ trait Recognizer[
     * @return An empty list when the library *is* valid for this
     * algorithm.
     */
-  def validLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, ?]):
+  def validLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, S]):
       List[ERR[T, H]]
 
   /** Precompile a plan library to collect any additional artifacts
     * required for this recognition algorithm.
     */
-  def prepareLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, ?]):
+  def prepareLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, S]):
       PPL[T, H, S]
 
   /** Attach the precompilation method to the plan library type.
