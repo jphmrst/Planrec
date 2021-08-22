@@ -18,14 +18,14 @@ import org.maraist.planrec.terms.TermImpl
   * @tparam T The type of term being declared.
   * @tparam H The type of term head associated with these terms.
   */
-trait PlanLibrary[R[X,Y] <: RuleForm[X,Y,S], T, H, S] {
+trait PlanLibrary[R[X,Y,Z] <: RuleForm[X,Y,Z], T, H, S] {
   /** The rules contained in this plan library. */
-  def rules: Set[R[T, H]]
+  def rules: Set[R[T, H, S]]
 
   /** Retrieve the rules associated with a particular goal head.
     * @param h Head term of rules query.
     */
-  def rules(h: H)(using impl: TermImpl[T,H,S]): Set[R[T, H]] =
+  def rules(h: H)(using impl: TermImpl[T,H,S]): Set[R[T, H, S]] =
     for (rule <- rules; if impl.head(rule.goal).equals(h)) yield rule
 
   /** Set of all rule goal terms. */
@@ -77,8 +77,8 @@ trait PlanLibrary[R[X,Y] <: RuleForm[X,Y,S], T, H, S] {
   * observations.
   */
 trait PreparedPlanLibrary[
-  R[M, N] <: RuleForm[M, N, S],
-  L[Y, Z] <: PlanLibrary[R, Y, Z, S],
+  R[M, N, S] <: RuleForm[M, N, S],
+  L[Y, Z, W] <: PlanLibrary[R, Y, Z, W],
   T, H,
   RS[Y] <: RecognitionSession[Y, EX],
   EX[X] <: Explanation[X],
@@ -86,7 +86,7 @@ trait PreparedPlanLibrary[
 ](using impl: TermImpl[T, H, ?]) {
 
   /** Underlying plan library. */
-  def lib: L[T, H]
+  def lib: L[T, H, S]
 
   /** Create a new stateful object for assembling explanations from a
     * sequence of observations.
@@ -135,18 +135,18 @@ trait Explanation[T] {
   * @tparam ERR Representation of algorithm-specific error messages.
   */
 trait Recognizer[
-  R[T,H] <: RuleForm[T, H, S],
-  PL[T,H] <: PlanLibrary[R, T, H, S],
-  PPL[T,H] <: PreparedPlanLibrary[R, PL, T, H, RS, EX, S],
+  R[T, H, S] <: RuleForm[T, H, S],
+  PL[T, H, S] <: PlanLibrary[R, T, H, S],
+  PPL[T, H, S] <: PreparedPlanLibrary[R, PL, T, H, RS, EX, S],
   RS[T] <: RecognitionSession[T, EX],
   EX[T] <: Explanation[T],
-  ERR[T,H] <: RuntimeException,
-  S]{
+  ERR[T, H] <: RuntimeException
+] {
 
   /** Diagnose whether a plan library is valid for this algorithm.
     * @return `true` if `lib` is valid.
     */
-  def isValidLibrary[T, H](lib: PL[T, H])(using impl: TermImpl[T, H, ?]):
+  def isValidLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, ?]):
       Boolean = validLibrary(lib) match {
     case Nil => true
     case _ => false
@@ -156,18 +156,18 @@ trait Recognizer[
     * @return An empty list when the library *is* valid for this
     * algorithm.
     */
-  def validLibrary[T, H](lib: PL[T, H])(using impl: TermImpl[T, H, ?]):
+  def validLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, ?]):
       List[ERR[T, H]]
 
   /** Precompile a plan library to collect any additional artifacts
     * required for this recognition algorithm.
     */
-  def prepareLibrary[T,H](lib: PL[T, H])(using impl: TermImpl[T, H, ?]):
-      PPL[T, H]
+  def prepareLibrary[T, H, S](lib: PL[T, H, S])(using impl: TermImpl[T, H, ?]):
+      PPL[T, H, S]
 
   /** Attach the precompilation method to the plan library type.
     */
-  extension [T, H](library: PL[T, H])(using impl: TermImpl[T, H, ?]) {
-    def prepare: PPL[T, H] = prepareLibrary(library)
+  extension [T, H, S](library: PL[T, H, S])(using impl: TermImpl[T, H, S]) {
+    def prepare: PPL[T, H, S] = prepareLibrary(library)
   }
 }

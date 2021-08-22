@@ -104,7 +104,7 @@ import org.maraist.planrec.PlanLibrary
 class HTNLib[T, H, S](
   val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double]
 )(using TermImpl[T, H, S])
-    extends PlanLibrary[[X,Y] =>> HTNrule[X,Y,S], T, H, S] {
+    extends PlanLibrary[HTNrule, T, H, S] {
 
   if top.length != topProbs.length
   then throw new IllegalArgumentException(
