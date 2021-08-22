@@ -92,4 +92,5 @@ object Term {
   export org.maraist.planrec.terms.{>?<, >+<, >><<, termHead, subst}
   export org.maraist.planrec.terms.String.StringAsTerm
   export org.maraist.planrec.terms.Symbol.SymbolAsTerm
+  export org.maraist.planrec.terms.Char.CharAsTerm
 }
