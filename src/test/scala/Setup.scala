@@ -12,7 +12,7 @@ package org.maraist.planrec.generaltest
 import scala.collection.immutable.{Seq,IndexedSeq}
 
 object RuleItemSamples1 {
-  import org.maraist.planrec.rules.{One,All,Act}
+  import org.maraist.planrec.rules.{One,All,Act,HTNLib}
   import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
   import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.StringAsTerm
@@ -36,5 +36,18 @@ object RuleItemSamples1 {
 
   val aBefore = ActItem(aa, false)
   val aAfter = ActItem(aa, true)
+
+  val lib0 = HTNLib(
+    Set(
+      One('M', Seq('A', 'X'), Seq(0.5, 0.6)),
+      All('X', IndexedSeq('A', 'B', 'C'),
+        Array((0,1), (0,2))),
+      Act('A', 'a'),
+      Act('B', 'b'),
+      Act('C', 'c')),
+    Seq('M'),
+    Seq(1.0)
+  )
+
 }
 
