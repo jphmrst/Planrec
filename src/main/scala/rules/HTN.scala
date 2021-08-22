@@ -13,7 +13,7 @@ import org.maraist.planrec.terms.Term.*
 import org.maraist.util.Collections.normalizeSeq
 
 /** Common trait of all rules. */
-trait RuleForm[T, H](using TermImpl[T,H,?]) {
+trait RuleForm[T, H, S](using TermImpl[T,H,S]) {
   def goal: T
   def unblockedSubgoals: Set[T]
 }
@@ -21,10 +21,10 @@ trait RuleForm[T, H](using TermImpl[T,H,?]) {
 /** An "and-rule", indicating that a goal can be fulfilled by meeting
   * all of the given subgoals.
   */
-case class All[T, H](
+case class All[T, H, S](
   val goal: T, val subgoals: IndexedSeq[T], val order: Array[(Int,Int)])
-  (using termImpl: TermImpl[T,H,?])
-    extends RuleForm[T, H] {
+  (using termImpl: TermImpl[T, H, S])
+    extends RuleForm[T, H, S] {
   // Check for well-formedness of order constraints when creating a rule
   for ((before, after) <- order) {
     if before == after
@@ -65,9 +65,9 @@ case class All[T, H](
   * This sequence must be of the same length as the sequence of
   * subgoals.
   */
-case class One[T, H](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Double])
-  (using TermImpl[T,H,?])
-    extends RuleForm[T,H] {
+case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Double])
+  (using TermImpl[T, H, S])
+    extends RuleForm[T, H, S] {
 
   if subgoals.length != subgoalProbs.length
   then throw new IllegalArgumentException(
@@ -84,8 +84,8 @@ case class One[T, H](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Double
 /** A "terminal rule," indicating that a goal corresponds to a simple
   * action.
   */
-case class Act[T, H](val goal: T, val action: T)(using TermImpl[T, H, ?])
-    extends RuleForm[T, H] {
+case class Act[T, H, S](val goal: T, val action: T)(using TermImpl[T, H, S])
+    extends RuleForm[T, H, S] {
   def unblockedSubgoals: Set[T] = Set.empty
 }
 
@@ -93,7 +93,7 @@ object HTN {
   export org.maraist.planrec.rules.All
   export org.maraist.planrec.rules.One
   export org.maraist.planrec.rules.Act
-  type HTNrule[T,H] = All[T,H] | One[T,H] | Act[T,H]
+  type HTNrule[T,H,S] = All[T,H,S] | One[T,H,S] | Act[T,H,S]
 }
 
 // -----------------------------------------------------------------
@@ -101,9 +101,10 @@ object HTN {
 import HTN.*
 import org.maraist.planrec.PlanLibrary
 
-class HTNLib[T, H](
-  val rules: Set[HTNrule[T, H]], val top: Seq[H], topProbs: Seq[Double]
-)(using TermImpl[T, H, ?]) extends PlanLibrary[HTNrule, T, H] {
+class HTNLib[T, H, S](
+  val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double]
+)(using TermImpl[T, H, S])
+    extends PlanLibrary[[X,Y] =>> HTNrule[X,Y,S], T, H, S] {
 
   if top.length != topProbs.length
   then throw new IllegalArgumentException(
