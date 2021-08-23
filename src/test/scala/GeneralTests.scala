@@ -16,7 +16,15 @@ import org.scalatest.matchers.should.*
 class GeneralTests extends AnyFlatSpec with Matchers {
 
   import org.maraist.planrec.terms.Term.*
-  import org.maraist.planrec.terms.Term.StringAsTerm
+  import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
+
+  "FullAll" `should` "translate to All with sequence of order pairs" in {
+    import org.maraist.planrec.rules.{All,FullAll}
+    val full = FullAll('L', IndexedSeq('A', 'B', 'D'))
+    full.order.size `should` be (2)
+    full.order(0) `should` be ((0,1))
+    full.order(1) `should` be ((1,2))
+  }
 
   "String" `should` "have term extension methods" in {
     ("x" >?< "x") `should` be (true)
