@@ -11,14 +11,15 @@
 package org.maraist.planrec.yr
 import org.maraist.planrec.
   {Recognizer, PreparedPlanLibrary, RecognitionSession, Explanation}
+import org.maraist.planrec.terms.TermImpl
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
 
-class TablesLib[T, H]
+class TablesLib[T, H, S](using TermImpl[T, H, S])
 extends PreparedPlanLibrary[
-  HTNrule, HTNLib, T, H, YRSession, YRExpl
+  HTNrule, HTNLib, T, H, YRSession, YRExpl, S
 ] {
-  def lib: HTNLib[T, H] = ???
+  def lib: HTNLib[T, H, S] = ???
   def newSession: YRSession[T] = ???
 }
 
@@ -35,7 +36,11 @@ class YRErr[T, H] extends RuntimeException {
 
 object YR
     extends Recognizer[HTNrule, HTNLib, TablesLib, YRSession, YRExpl, YRErr] {
-  override def validLibrary[T, H](lib: HTNLib[T, H]): List[YRErr[T, H]] = ???
-  override def prepareLibrary[T,H](lib: HTNLib[T, H]): TablesLib[T, H] = ???
+  override def validLibrary[T, H, S](lib: HTNLib[T, H, S])
+    (using impl: TermImpl[T, H, ?]):
+      List[YRErr[T, H]] = ???
+  override def prepareLibrary[T, H, S](lib: HTNLib[T, H, S])
+    (using impl: TermImpl[T, H, ?]):
+      TablesLib[T, H, S] = ???
 }
 

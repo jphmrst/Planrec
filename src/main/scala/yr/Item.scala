@@ -33,12 +33,16 @@ import scala.compiletime.ops.any
   * the items implemented here.  The argument to this type constructor
   * must implement [[TermImpl]].
   */
-sealed trait RuleItem[T, H, RuleType[X] <: HTNrule[X, H], PosType[X] <: Item[X, H]]
-  (using TermImpl[T,H,?]) {
+sealed trait RuleItem[
+  T, H, S,
+  RuleType[X, Y, Z] <: HTNrule[X, Y, Z],
+  PosType[X, Y, Z] <: Item[X, Y, Z]
+]
+  (using TermImpl[T, H, S]) {
 
   /** Build the initial item for the particular rule type.
     */
-  def initialItem(rule: RuleType[T]): PosType[T]
+  def initialItem(rule: RuleType[T, H, S]): PosType[T, H, S]
 
   /** Add the basic NFA elements for this rule to a handle-finding NFA,
     * and to the queue of items to process.  By default, this method:
@@ -53,9 +57,9 @@ sealed trait RuleItem[T, H, RuleType[X] <: HTNrule[X, H], PosType[X] <: Item[X, 
     * Most implementations of [[RuleItem]] should override this
     * method, but still call this superclass method at some point.
     */
-  def queueInitialRuleForms[I >: PosType[T]](
-    rule: RuleType[T],
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
+  def queueInitialRuleForms[I >: PosType[T, H, S]](
+    rule: RuleType[T, H, S],
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
     queue: Queue[(Option[(I, T)], I)]
   ): Unit =
     queue.enqueue((None, initialItem(rule)))
@@ -66,10 +70,10 @@ sealed trait RuleItem[T, H, RuleType[X] <: HTNrule[X, H], PosType[X] <: Item[X, 
   * @tparam T Type of terms for goals and actions in rules and items
   * @param impl Item implementation.
   */
-sealed trait Item[T,H](using impl: TermImpl[T,H,?]) {
+sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
 
   /** HTN [[HTNrule rule]] associated with this item. */
-  def rule: HTNrule[T, H]
+  def rule: HTNrule[T, H, S]
 
   /** Returns `true` if this item is a final item for its rule. */
   def isFinal: Boolean
@@ -92,7 +96,7 @@ sealed trait Item[T,H](using impl: TermImpl[T,H,?]) {
     * @param hint Directive for resolving the trigger to a particular
     * subgoal of this item's rule.
     */
-  def apply(trigger: T)(using hint: TriggerHint): Option[Item[T, H]]
+  def apply(trigger: T)(using hint: TriggerHint): Option[Item[T, H, S]]
 
   /** Hints which might apply to this trigger, if it is ambiguous within
     * the possible subgoals/actions.
@@ -111,8 +115,8 @@ sealed trait Item[T,H](using impl: TermImpl[T,H,?]) {
     * @param queue Queue of items to subsequently be added to the NFA.
     */
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit
 
   /** Add the necessary components to an [[NDFABuilder]] for the `next`
@@ -126,9 +130,9 @@ sealed trait Item[T,H](using impl: TermImpl[T,H,?]) {
     * @param queue Queue of items to subsequently be added to the NFA.
     */
   def encodeItemTransition(
-    prev: Option[(Item[T, H], T)],
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    prev: Option[(Item[T, H, S], T)],
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit
 
 }
@@ -140,12 +144,12 @@ sealed trait Item[T,H](using impl: TermImpl[T,H,?]) {
   * @param ready The frontier of subgoals which are neither satisfied
   * nor blocked in this item.
   */
-case class AllItem[T, H](
-  val rule: All[T, H],
+case class AllItem[T, H, S](
+  val rule: All[T, H, S],
   val ready: Set[Int]
 )(
-  using TermImpl[T, H,?]
-) extends Item[T, H] {
+  using TermImpl[T, H, S]
+) extends Item[T, H, S] {
 
   /** In [[All]] rules' items, the item is in the final state when the
     * frontier set is empty. */
@@ -158,7 +162,7 @@ case class AllItem[T, H](
   }
   def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint): Option[AllItem[T, H]] = {
+  def apply(trigger: T)(using hint: TriggerHint): Option[AllItem[T, H, S]] = {
     import scala.util.control.NonLocalReturns.*
     val idx: Option[Int] = hint match {
       case TriggerMatchIndex(i) => Some(i)
@@ -192,8 +196,8 @@ case class AllItem[T, H](
   def triggers: Set[T] = for((trigger, _) <- goalHints) yield trigger
 
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = {
 
     // Add the item as a node if it is not already in the NDA.
@@ -201,9 +205,9 @@ case class AllItem[T, H](
   }
 
   def encodeItemTransition(
-    prev: Option[(Item[T, H], T)],
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    prev: Option[(Item[T, H, S], T)],
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = {
 
     val prior = prev match {
@@ -230,11 +234,11 @@ case class AllItem[T, H](
 /** Position of an item in a [[org.maraist.planrec.rules.One One]]
   * rule.
   */
-case class OneItem[T, H](val rule: One[T, H], val isFinal: Boolean)
-  (using TermImpl[T,H,?]) extends Item[T, H] {
+case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
+  (using TermImpl[T, H, S]) extends Item[T, H, S] {
 
   override def equals(a: Any): Boolean = a match {
-    case that: OneItem[?,?] => rule == that.rule && isFinal == that.isFinal
+    case that: OneItem[?,?,?] => rule == that.rule && isFinal == that.isFinal
     case _ => false
   }
   override def hashCode(): Int =
@@ -244,7 +248,7 @@ case class OneItem[T, H](val rule: One[T, H], val isFinal: Boolean)
 
   def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint): Option[OneItem[T, H]] =
+  def apply(trigger: T)(using hint: TriggerHint): Option[OneItem[T, H, S]] =
     ???
 
   def applications(trigger: T): Seq[TriggerHint] = ???
@@ -252,14 +256,14 @@ case class OneItem[T, H](val rule: One[T, H], val isFinal: Boolean)
   def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
 
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 
   def encodeItemTransition(
-    prev: Option[(Item[T, H], T)],
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    prev: Option[(Item[T, H, S], T)],
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 }
 
@@ -267,11 +271,11 @@ case class OneItem[T, H](val rule: One[T, H], val isFinal: Boolean)
 /** Position of an item in a [[org.maraist.planrec.rules.Act Act]]
   * rule.
   */
-case class ActItem[T, H](val rule: Act[T, H], val isFinal: Boolean)
-  (using TermImpl[T,H,?]) extends Item[T, H] {
+case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
+  (using TermImpl[T, H, S]) extends Item[T, H, S] {
 
   override def equals(a: Any): Boolean = a match {
-    case that: ActItem[?, ?] => rule == that.rule && isFinal == that.isFinal
+    case that: ActItem[?, ?, ?] => rule == that.rule && isFinal == that.isFinal
     case _ => false
   }
   override def hashCode(): Int =
@@ -281,7 +285,7 @@ case class ActItem[T, H](val rule: Act[T, H], val isFinal: Boolean)
 
   def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint): Option[ActItem[T, H]] =
+  def apply(trigger: T)(using hint: TriggerHint): Option[ActItem[T, H, S]] =
     ???
 
   def applications(trigger: T): Seq[TriggerHint] = ???
@@ -289,14 +293,14 @@ case class ActItem[T, H](val rule: Act[T, H], val isFinal: Boolean)
   def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
 
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 
   def encodeItemTransition(
-    prev: Option[(Item[T, H], T)],
-    nfa: NDFABuilder[Item.Node[T,H],?,?,?,?],
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])]):
+    prev: Option[(Item[T, H, S], T)],
+    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 }
 
@@ -305,12 +309,12 @@ case class ActItem[T, H](val rule: Act[T, H], val isFinal: Boolean)
   * for various rules.
   */
 object Item {
-  type Node[T,H] = Item[T, H] | H | Ind[Item[T, H], H]
+  type Node[T, H, S] = Item[T, H, S] | H | Ind[Item[T, H, S], H, S]
 
-  given all[T,H](using TermImpl[T,H,?]):
-      RuleItem[T, H, [X] =>> All[X, H], [X] =>> AllItem[X, H]] with {
+  given all[T, H, S](using TermImpl[T, H, S]):
+      RuleItem[T, H, S, All, AllItem] with {
 
-    def initialItem(rule: All[T, H]): AllItem[T, H] = {
+    def initialItem(rule: All[T, H, S]): AllItem[T, H, S] = {
       val getDelayed = Set.newBuilder[Int]
       for((_,after) <- rule.order) {
         getDelayed += after
@@ -324,12 +328,12 @@ object Item {
         }
       }
 
-      AllItem[T, H](rule, getReady.result())
+      AllItem[T, H, S](rule, getReady.result())
     }
 
-    override def queueInitialRuleForms[I >: AllItem[T, H]](
-      rule: All[T, H],
-      nfa: NDFABuilder[Node[T,H],?,?,?,?],
+    override def queueInitialRuleForms[I >: AllItem[T, H, S]](
+      rule: All[T, H, S],
+      nfa: NDFABuilder[Node[T, H, S],?,?,?,?],
       queue: Queue[(Option[(I, T)], I)]):
         Unit = {
       ???
@@ -337,13 +341,14 @@ object Item {
     }
   }
 
-  given one[T,H](using TermImpl[T,H,?]):
-      RuleItem[T, H, [X] =>> One[X, H], [X] =>> OneItem[X, H]] with {
-    def initialItem(rule: One[T, H]): OneItem[T, H] = OneItem[T, H](rule, false)
+  given one[T,H,S](using TermImpl[T,H,S]):
+      RuleItem[T, H, S, One, OneItem] with {
+    def initialItem(rule: One[T, H, S]): OneItem[T, H, S] =
+      OneItem[T, H, S](rule, false)
 
-    override def queueInitialRuleForms[I >: OneItem[T, H]](
-      rule: One[T, H],
-      nfa: NDFABuilder[Node[T,H],?,?,?,?],
+    override def queueInitialRuleForms[I >: OneItem[T, H, S]](
+      rule: One[T, H, S],
+      nfa: NDFABuilder[Node[T, H, S],?,?,?,?],
       queue: Queue[(Option[(I, T)], I)]):
         Unit = {
       ???
@@ -351,13 +356,14 @@ object Item {
     }
   }
 
-  given act[T,H](using TermImpl[T,H,?]):
-      RuleItem[T, H, [X] =>> Act[X, H], [X] =>> ActItem[X, H]] with {
-    def initialItem(rule: Act[T, H]): ActItem[T, H] = ActItem[T, H](rule, false)
+  given act[T, H, S](using TermImpl[T, H, S]):
+      RuleItem[T, H, S, Act, ActItem] with {
+    def initialItem(rule: Act[T, H, S]): ActItem[T, H, S] =
+      ActItem[T, H, S](rule, false)
 
-    override def queueInitialRuleForms[I >: ActItem[T, H]](
-      rule: Act[T, H],
-      nfa: NDFABuilder[Node[T,H],?,?,?,?],
+    override def queueInitialRuleForms[I >: ActItem[T, H, S]](
+      rule: Act[T, H, S],
+      nfa: NDFABuilder[Node[T, H, S],?,?,?,?],
       queue: Queue[(Option[(I, T)], I)]):
         Unit = {
       ???
@@ -368,24 +374,24 @@ object Item {
 
 import org.maraist.planrec.yr.table.Item.*
 
-extension [T,H](rule: HTNrule[T, H])(using termImpl: TermImpl[T,H,?]) {
-  def initialItem: Item[T, H] =
+extension [T, H, S](rule: HTNrule[T, H, S])(using termImpl: TermImpl[T,H,S]) {
+  def initialItem: Item[T, H, S] =
     rule match {
-      case allRule: All[T, H] => Item.all.initialItem(allRule)
-      case oneRule: One[T, H] => Item.one.initialItem(oneRule)
-      case actRule: Act[T, H] => Item.act.initialItem(actRule)
+      case allRule: All[T, H, S] => Item.all.initialItem(allRule)
+      case oneRule: One[T, H, S] => Item.one.initialItem(oneRule)
+      case actRule: Act[T, H, S] => Item.act.initialItem(actRule)
     }
 
   def queueInitialRuleForms(
-    queue: Queue[(Option[(Item[T, H], T)], Item[T, H])],
-    nfa: NDFABuilder[Node[T,H],?,?,?,?]):
+    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])],
+    nfa: NDFABuilder[Node[T, H, S],?,?,?,?]):
       Unit =
     rule match {
-      case allRule: All[T, H] =>
+      case allRule: All[T, H, S] =>
         Item.all.queueInitialRuleForms(allRule, nfa, queue)
-      case oneRule: One[T, H] =>
+      case oneRule: One[T, H, S] =>
         Item.one.queueInitialRuleForms(oneRule, nfa, queue)
-      case actRule: Act[T, H] =>
+      case actRule: Act[T, H, S] =>
         Item.act.queueInitialRuleForms(actRule, nfa, queue)
     }
 }
