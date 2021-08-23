@@ -9,11 +9,13 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.rules
+import org.maraist.latex.{LaTeXdoc,LaTeXRenderable,LaTeXRenderer}
 import org.maraist.planrec.terms.Term.*
 import org.maraist.util.Collections.normalizeSeq
 
 /** Common trait of all rules. */
-trait RuleForm[T, H, S](using TermImpl[T,H,S]) {
+trait RuleForm[T, H, S](using TermImpl[T,H,S])
+    extends LaTeXRenderable {
   def goal: T
   def unblockedSubgoals: Set[T]
 }
@@ -24,6 +26,7 @@ trait RuleForm[T, H, S](using TermImpl[T,H,S]) {
 case class All[T, H, S](
   val goal: T, val subgoals: IndexedSeq[T], val order: Array[(Int,Int)])
   (using termImpl: TermImpl[T, H, S])
+  (using termRender: LaTeXRenderer[T])
     extends RuleForm[T, H, S] {
   // Check for well-formedness of order constraints when creating a rule
   for ((before, after) <- order) {
@@ -53,6 +56,13 @@ case class All[T, H, S](
     }
     res.result()
   }
+
+  def toLaTeX(doc: LaTeXdoc):
+      Unit = {
+    termRender.toLaTeX(doc, goal)
+    doc ++= " & ::= "
+    ???
+  }
 }
 
 /**
@@ -61,7 +71,8 @@ case class All[T, H, S](
   */
 object FullAll {
   def apply[T, H, S](goal: T, subgoals: IndexedSeq[T])
-    (using termImpl: TermImpl[T, H, S]):
+    (using termImpl: TermImpl[T, H, S])
+    (using termRender: LaTeXRenderer[T]):
       All[T, H, S] = {
     val pairs = Array.newBuilder[(Int,Int)]
     for(i <- 1 to subgoals.length - 1) {
@@ -77,7 +88,8 @@ object FullAll {
   */
 object UnordAll {
   def apply[T, H, S](goal: T, subgoals: IndexedSeq[T])
-    (using termImpl: TermImpl[T, H, S]):
+    (using termImpl: TermImpl[T, H, S])
+    (using termRender: LaTeXRenderer[T]):
       All[T, H, S] = All(goal, subgoals, Array())
 }
 
@@ -92,7 +104,7 @@ object UnordAll {
   * subgoals.
   */
 case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Double])
-  (using TermImpl[T, H, S])
+  (using TermImpl[T, H, S])(using termRender: LaTeXRenderer[T])
     extends RuleForm[T, H, S] {
 
   if subgoals.length != subgoalProbs.length
@@ -105,14 +117,33 @@ case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Dou
   val probs: Seq[Double] = normalizeSeq(subgoalProbs)
 
   def unblockedSubgoals: Set[T] = Set.from(subgoals)
+
+  def toLaTeX(doc: LaTeXdoc):
+      Unit = {
+    termRender.toLaTeX(doc, goal)
+    var sep = " & ::= "
+    for(subgoal <- subgoals) {
+      doc ++= sep
+      termRender.toLaTeX(doc, subgoal)
+      sep = " | "
+    }
+  }
 }
 
 /** A "terminal rule," indicating that a goal corresponds to a simple
   * action.
   */
-case class Act[T, H, S](val goal: T, val action: T)(using TermImpl[T, H, S])
+case class Act[T, H, S](val goal: T, val action: T)
+  (using TermImpl[T, H, S])(using termRender: LaTeXRenderer[T])
     extends RuleForm[T, H, S] {
   def unblockedSubgoals: Set[T] = Set.empty
+
+  def toLaTeX(doc: LaTeXdoc):
+      Unit = {
+    termRender.toLaTeX(doc, goal)
+    var sep = " & ::= "
+    termRender.toLaTeX(doc, action)
+  }
 }
 
 object HTN {

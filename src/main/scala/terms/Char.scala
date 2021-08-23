@@ -9,6 +9,7 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.terms
+import org.maraist.latex.{LaTeXdoc,LaTeXRenderer}
 
 object Char {
   given CharAsTerm: TermImpl[Char, Char, Unit] with
@@ -19,4 +20,7 @@ object Char {
     def getUnifier(t1: Char, t2: Char): Option[Unit] =
       if unifiable(t1, t2) then Some(()) else None
     def substitute(t: Char, s: Unit): Char = t
+
+  given RenderStringAsTerm: LaTeXRenderer[String] with
+    override def toLaTeX(c: Char, doc: LaTeXdoc) = { doc += c }
 }
