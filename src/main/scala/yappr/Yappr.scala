@@ -16,10 +16,10 @@ import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
 import org.maraist.planrec.terms.TermImpl
 
-class PFFGlib[T, H](override val lib: HTNLib[T, H])
-  (using impl: TermImpl[T, H, ?])
+class PFFGlib[T, H, S](override val lib: HTNLib[T, H, S])
+  (using impl: TermImpl[T, H, S])
 extends PreparedPlanLibrary[
-  HTNrule, HTNLib, T, H, YapprSession, YapprExpl
+  HTNrule, HTNLib, T, H, YapprSession, YapprExpl, S
 ] {
   def newSession: YapprSession[T] = ???
 }
@@ -45,8 +45,8 @@ object YapprErrs {
 object Yappr extends Recognizer
   [HTNrule, HTNLib, PFFGlib, YapprSession, YapprExpl, YapprErr] {
 
-  override def validLibrary[T, H](lib: HTNLib[T, H])
-    (using impl: TermImpl[T, H, ?]): List[YapprErr[T, H]] = {
+  override def validLibrary[T, H, S](lib: HTNLib[T, H, S])
+    (using impl: TermImpl[T, H, S]): List[YapprErr[T, H]] = {
     import org.maraist.planrec.yappr.YapprErrs.UnguardedLibraryRecursion
     val checked = new HashSet[H]
     List.from(
@@ -55,12 +55,12 @@ object Yappr extends Recognizer
     ).flatten.map(new UnguardedLibraryRecursion[T,H](_))
   }
 
-  private def checkForUnguardedLoopOnRules[T, H](
-    lib: HTNLib[T, H],
+  private def checkForUnguardedLoopOnRules[T, H, S](
+    lib: HTNLib[T, H, S],
     seen: Set[H],
     checked: HashSet[H],
-    rules: Set[HTNrule[T, H]]
-  )(using impl: TermImpl[T, H, ?]): List[H] = {
+    rules: Set[HTNrule[T, H, S]]
+  )(using impl: TermImpl[T, H, S]): List[H] = {
     val res = List.newBuilder[H]
     for(rule <- rules) {
       res ++= checkForUnguardedLoopOnGoals(
@@ -69,12 +69,12 @@ object Yappr extends Recognizer
     res.result()
   }
 
-  private def checkForUnguardedLoopOnGoals[T, H](
-    lib: HTNLib[T, H],
+  private def checkForUnguardedLoopOnGoals[T, H, S](
+    lib: HTNLib[T, H, S],
     seen: Set[H],
     checked: HashSet[H],
     goals: Set[T]
-  )(using impl: TermImpl[T, H, ?]): List[H] = {
+  )(using impl: TermImpl[T, H, S]): List[H] = {
     val res = List.newBuilder[H]
     for(goal <- goals) {
       val h = impl.head(goal)
@@ -90,8 +90,8 @@ object Yappr extends Recognizer
     res.result()
   }
 
-  override def prepareLibrary[T,H](lib: HTNLib[T, H])
-    (using impl: TermImpl[T, H, ?]):
-      PFFGlib[T, H] = ???
+  override def prepareLibrary[T, H, S](lib: HTNLib[T, H, S])
+    (using impl: TermImpl[T, H, S]):
+      PFFGlib[T, H, S] = ???
 }
 
