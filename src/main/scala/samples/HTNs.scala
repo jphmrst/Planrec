@@ -23,8 +23,10 @@ object HTNs {
   val cc = Act[String, String, Unit]("C", "c")
   val nn = One[String, String, Unit]("N", Seq("A", "B"), Seq(0.4, 0.6))
   val pp = One[String, String, Unit]("P", Seq("A", "C"), Seq(0.3, 0.7))
-  val mm = All[String, String, Unit]("M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
-  val rr = All[String, String, Unit]("R", IndexedSeq("N", "P"), Array[(Int,Int)]())
+  val mm = All[String, String, Unit](
+    "M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
+  val rr = All[String, String, Unit](
+    "R", IndexedSeq("N", "P"), Array[(Int,Int)]())
 
   // val rInitial = AllItem(rr, Set(0, 1))
   // val rThenN = AllItem(rr, Set(1))
@@ -221,8 +223,6 @@ object HTNs {
     )
   )
 
-  // Gives Dotty core dump when compiling!
-  //
   // val ap1 = Sample(
   //   "ap1",
   //   HTNLib(
@@ -411,30 +411,28 @@ object HTNs {
     )
   )
 
-  // Breaks Dotty
-  //
-  // val b7 = Sample(
-  //   "b7",
-  //   HTNLib(
-  //     Set(
-  //       UnordAll('M', IndexedSeq('N', 'D')),
-  //       One('N', Seq('P', 'Q')),
-  //       FullAll('P', IndexedSeq('A')),
-  //       FullAll('Q', IndexedSeq('A', 'B', 'C')),
-  //       Act('A', 'a'),
-  //       Act('B', 'b'),
-  //       Act('C', 'c'),
-  //       Act('D', 'd')
-  //     ),
-  //     Seq('M'),
-  //     Seq(1.0)
-  //   ),
-  //   "",
-  //   Seq(
-  //     Seq('a', 'b', 'c', 'd'),
-  //     Seq('d', 'a', 'b', 'c')
-  //   )
-  // )
+  val b7 = Sample(
+    "b7",
+    HTNLib(
+      Set(
+        UnordAll('M', IndexedSeq('N', 'D')),
+        One('N', Seq('P', 'Q'), Seq(0.4, 0.6)),
+        FullAll('P', IndexedSeq('A')),
+        FullAll('Q', IndexedSeq('A', 'B', 'C')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('M'),
+      Seq(1.0)
+    ),
+    "",
+    Seq(
+      Seq('a', 'b', 'c', 'd'),
+      Seq('d', 'a', 'b', 'c')
+    )
+  )
 
   val b8 = Sample(
     "b8",
@@ -583,29 +581,29 @@ object HTNs {
     )
   )
 
-  // val c2 = Sample(
-  //   "c2",
-  //   HTNLib(
-  //     Set(
-  //       FullAll('L', IndexedSeq('D', 'P')),
-  //       One('P', IndexedSeq('Q', 'S')),
-  //       FullAll('Q', IndexedSeq('A', 'D')),
-  //       UnordAll('S', IndexedSeq('M', 'N')),
-  //       FullAll('M', IndexedSeq('A', 'B')),
-  //       FullAll('N', IndexedSeq('C', 'D')),
-  //       Act('A', 'a'),
-  //       Act('B', 'b'),
-  //       Act('C', 'c'),
-  //       Act('D', 'd')
-  //     ),
-  //     Seq('L'),
-  //     Seq(1.0)
-  //   ),
-  //   "Combining several features",
-  //   Seq(
-  //     Seq('d', 'a', 'd'),
-  //   )
-  // )
+  val c2 = Sample(
+    "c2",
+    HTNLib(
+      Set(
+        FullAll('L', IndexedSeq('D', 'P')),
+        One('P', Seq('Q', 'S'), Seq(0.4, 0.6)),
+        FullAll('Q', IndexedSeq('A', 'D')),
+        UnordAll('S', IndexedSeq('M', 'N')),
+        FullAll('M', IndexedSeq('A', 'B')),
+        FullAll('N', IndexedSeq('C', 'D')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "Combining several features",
+    Seq(
+      Seq('d', 'a', 'd'),
+    )
+  )
 
   val c3 = Sample(
     "c3",
@@ -651,30 +649,30 @@ object HTNs {
     )
   )
 
-  // val c5 = Sample(
-  //   "c5",
-  //   HTNLib(
-  //     Set(
-  //       UnordAll('X', IndexedSeq('D', 'Y')),
-  //       One('Y', Seq('Z', 'K', 'F')),
-  //       UnordAll('Z', IndexedSeq('J', 'C')),
-  //       FullAll('K', IndexedSeq('A', 'B')),
-  //       UnordAll('F', IndexedSeq('A', 'B', 'D')),
-  //       FullAll('J', IndexedSeq('B', 'A')),
-  //       Act('A', 'a'),
-  //       Act('B', 'b'),
-  //       Act('C', 'c'),
-  //       Act('D', 'd')
-  //     ),
-  //     Seq('X'),
-  //     Seq(1.0)
-  //   ),
-  //   "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
-  //   Seq(
-  //     Seq('d', 'b', 'a', 'c'),
-  //     Seq('d', 'c')
-  //   )
-  // )
+  val c5 = Sample(
+    "c5",
+    HTNLib(
+      Set(
+        UnordAll('X', IndexedSeq('D', 'Y')),
+        One('Y', Seq('Z', 'K', 'F'), Seq(0.2, 0.3, 0.5)), // Dotty crash if 3rd arg missing
+        UnordAll('Z', IndexedSeq('J', 'C')),
+        FullAll('K', IndexedSeq('A', 'B')),
+        UnordAll('F', IndexedSeq('A', 'B', 'D')),
+        FullAll('J', IndexedSeq('B', 'A')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('X'),
+      Seq(1.0)
+    ),
+    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
+    Seq(
+      Seq('d', 'b', 'a', 'c'),
+      Seq('d', 'c')
+    )
+  )
 
   val c6 = Sample(
     "c6",
@@ -744,27 +742,27 @@ object HTNs {
     )
   )
 
-  // val cp0 = Sample(
-  //   "cp0",
-  //   HTNLib(
-  //     Set(
-  //       All('F', IndexedSeq('A', 'B', 'C'), Array((0,1), (0.2))),
-  //       All('G', IndexedSeq('A', 'C', 'D'), Array((0,1), (0.2))),
-  //       Act('A', 'a'),
-  //       Act('B', 'b'),
-  //       Act('C', 'c'),
-  //       Act('D', 'd')
-  //     ),
-  //     Seq('F', 'G'),
-  //     Seq(0.4, 0.6)
-  //   ),
-  //   "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
-  //   Seq(
-  //     Seq('a', 'c', 'b'),
-  //     Seq('a', 'c'),
-  //     Seq('a')
-  //   )
-  // )
+  val cp0 = Sample(
+    "cp0",
+    HTNLib(
+      Set(
+        All('F', IndexedSeq('A', 'B', 'C'), Array((0,1), (0,2))),
+        All('G', IndexedSeq('A', 'C', 'D'), Array((0,1), (0,2))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('F', 'G'),
+      Seq(0.4, 0.6)
+    ),
+    "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
+    Seq(
+      Seq('a', 'c', 'b'),
+      Seq('a', 'c'),
+      Seq('a')
+    )
+  )
 
   val cp1 = Sample(
     "cp1",
@@ -878,31 +876,31 @@ object HTNs {
     )
   )
 
-  // val cp6 = Sample(
-  //   "cp6",
-  //   HTNLib(
-  //     Set(
-  //       FullAll('M', IndexedSeq('A', 'B', 'C')),
-  //       All('N', IndexedSeq('A', 'B', 'D', 'E', 'F', 'G'),
-  //         Array((0,1), (1,2) (1,3), (2,4), (2,5), (3,4), (3,5))),
-  //       Act('A', 'a'),
-  //       Act('B', 'b'),
-  //       Act('C', 'c'),
-  //       Act('D', 'd'),
-  //       Act('E', 'e'),
-  //       Act('F', 'f'),
-  //       Act('G', 'g')
-  //     ),
-  //     Seq('M', 'N'),
-  //     Seq(0.4, 0.6)
-  //   ),
-  //   "",
-  //   Seq(
-  //     Seq('a', 'b', 'c'),
-  //     Seq('a', 'b', 'd', 'e', 'f', 'g'),
-  //     Seq('a', 'b', 'e', 'd', 'f', 'g'),
-  //     Seq('a')
-  //   )
-  // )
+  val cp6 = Sample(
+    "cp6",
+    HTNLib(
+      Set(
+        FullAll('M', IndexedSeq('A', 'B', 'C')),
+        All('N', IndexedSeq('A', 'B', 'D', 'E', 'F', 'G'),
+          Array((0,1), (1,2), (1,3), (2,4), (2,5), (3,4), (3,5))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd'),
+        Act('E', 'e'),
+        Act('F', 'f'),
+        Act('G', 'g')
+      ),
+      Seq('M', 'N'),
+      Seq(0.4, 0.6)
+    ),
+    "",
+    Seq(
+      Seq('a', 'b', 'c'),
+      Seq('a', 'b', 'd', 'e', 'f', 'g'),
+      Seq('a', 'b', 'e', 'd', 'f', 'g'),
+      Seq('a')
+    )
+  )
 }
 
