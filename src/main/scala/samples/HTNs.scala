@@ -12,7 +12,8 @@ package org.maraist.planrec.samples
 import scala.collection.immutable.{Seq,IndexedSeq}
 
 object HTNs {
-  import org.maraist.planrec.rules.{One,All,FullAll,Act,HTNLib}
+  import org.maraist.planrec.rules.{
+    One,All,FullAll,UnordAll,Act,HTNLib}
   // import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
   // import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
@@ -42,6 +43,7 @@ object HTNs {
     * `'a0` in the old Lisp `yr/examples/specs.lisp` file.
     */
   val a0 = Sample(
+    "a0",
     HTNLib(
       Set(
         One('M', Seq('A', 'X'), Seq(0.4, 0.6)),
@@ -63,6 +65,7 @@ object HTNs {
     * Was `'a1` in the old Lisp `yr/examples/specs.lisp` file.
     */
   val a1 = Sample(
+    "a1",
     HTNLib(
       Set(
         One("M", Seq("X", "Y"), Seq(0.4, 0.6)),
@@ -83,6 +86,7 @@ object HTNs {
   )
 
   val a2 = Sample(
+    "a2",
     HTNLib(
       Set(
         All('M', IndexedSeq('N', 'C'), Array((0,1))),
@@ -102,6 +106,7 @@ object HTNs {
   )
 
   val a3 = Sample(
+    "a3",
     HTNLib(
       Set(
         One('S', Seq('L', 'M', 'N'), Seq(0.2, 0.3, 0.5)),
@@ -124,6 +129,7 @@ object HTNs {
   )
 
   val a4 = Sample(
+    "a4",
     HTNLib(
       Set(
         FullAll('S', IndexedSeq('M', 'N')),
@@ -145,6 +151,7 @@ object HTNs {
   )
 
   val a5 = Sample(
+    "a5",
     HTNLib(
       Set(
         FullAll('M', IndexedSeq('A', 'B', 'C', 'N')),
@@ -166,6 +173,7 @@ object HTNs {
   )
 
   val a6 = Sample(
+    "a6",
     HTNLib(
       Set(
         FullAll('L', IndexedSeq('M', 'N', 'P')),
@@ -192,6 +200,7 @@ object HTNs {
   )
 
   val ap0 = Sample(
+    "ap0",
     HTNLib(
       Set(
         FullAll('M', IndexedSeq('L', 'A')),
@@ -212,9 +221,10 @@ object HTNs {
     )
   )
 
-  // Gives Dotty core dump when compiling
+  // Gives Dotty core dump when compiling!
   //
   // val ap1 = Sample(
+  //   "ap1",
   //   HTNLib(
   //     Set(
   //       FullAll('L', IndexedSeq('A', 'M', 'C')),
@@ -235,6 +245,7 @@ object HTNs {
   // )
 
   val ap2 = Sample(
+    "ap2",
     HTNLib(
       Set(
         FullAll('M', IndexedSeq('A', 'B')),
@@ -254,7 +265,8 @@ object HTNs {
     )
   )
 
-  val a = Sample(
+  val b0 = Sample(
+    "b0",
     HTNLib(
       Set(
         All('S', IndexedSeq('M', 'N'), Array.empty),
@@ -274,690 +286,632 @@ object HTNs {
       Seq('a', 'c', 'b', 'd'),
       Seq('a', 'a', 'a', 'b')
     ),
-    essay = "State 0 corresponds to the two-insertion point item $S(M N)$; upon entering State 0 the machine should spawn concurrent stacks capped with States 1 and 2 generated from items $M (A)$ and $N (C)$ respectively. State 0 and its successors are controller states. State 1 heads a sequence of states corresponding to single-intersection point items recognizing first an $A$ and then a $B$, and similarly from State 2 for $N (C)$."
+    "State 0 corresponds to the two-insertion point item $S(M N)$; upon entering State 0 the machine should spawn concurrent stacks capped with States 1 and 2 generated from items $M (A)$ and $N (C)$ respectively. State 0 and its successors are controller states. State 1 heads a sequence of states corresponding to single-intersection point items recognizing first an $A$ and then a $B$, and similarly from State 2 for $N (C)$."
+  )
+
+  val b1 = Sample(
+    "b1",
+    HTNLib(
+      Set(
+        All('U', IndexedSeq('M', 'P'), Array()),
+        FullAll('M', IndexedSeq('A', 'B')),
+        FullAll('P', IndexedSeq('A', 'C')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c')
+      ),
+      Seq('U'),
+      Seq(1.0)
+    ),
+    "This library has interleaving subgoals which share their initial lower-level goal $A$.",
+    Seq(
+      Seq('a', 'a', 'b', 'c')
+    )
+  )
+
+  val b2 = Sample(
+   "b2",
+    HTNLib(
+      Set(
+        FullAll('R', IndexedSeq('D', 'S')),
+        All('S', IndexedSeq('M', 'N'), Array()),
+        FullAll('M', IndexedSeq('A', 'B')),
+        FullAll('N', IndexedSeq('C', 'D')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq(),
+      Seq()
+    ),
+    "Table construction for this library encounters a multiple-insertion point item in the closure of an item set.",
+    Seq(
+      Seq('d', 'a', 'c', 'b', 'd')
+    )
+  )
+
+  val b3 = Sample(
+    "b3",
+    HTNLib(
+      Set(
+        All('H', IndexedSeq('A', 'B', 'C'), Array((0,2))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c')
+      ),
+      Seq('H'),
+      Seq(1.0)
+    ),
+    "In this library, completing one of two interleavable subgoals triggers a third.",
+    Seq(
+      Seq('a', 'b', 'c'),
+      Seq('a', 'a', 'b', 'c'),
+      Seq('b', 'a', 'c')
+    )
+  )
+
+  val b4 = Sample(
+    "b4",
+    HTNLib(
+      Set(
+        All('L', IndexedSeq('A', 'B', 'C', 'D'),
+          Array((0,2), (0,3), (1,2), (1,3))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "In this library, completing two of four interleavable subgoals triggers the other two.",
+    Seq(
+      Seq('a', 'b', 'c', 'd'),
+      Seq('a', 'a', 'b', 'c', 'd')
+    )
+  )
+
+  val b5 = Sample(
+    "b5",
+    HTNLib(
+      Set(
+        All('L', IndexedSeq('A', 'B', 'C'), Array((0,1), (0,2))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "In this library, completing one subgoal enables two interleavable ones.",
+    Seq(
+      Seq('a', 'b', 'c'),
+      Seq('a', 'c', 'b'),
+      Seq('a', 'a', 'b', 'c')
+    )
+  )
+
+  val b6 = Sample(
+    "b6",
+    HTNLib(
+      Set(
+        All('S', IndexedSeq('M', 'N'), Array()),
+        FullAll('M', IndexedSeq('A', 'B')),
+        FullAll('N', IndexedSeq('A', 'B')),
+        Act('A', 'a'),
+        Act('B', 'b')
+      ),
+      Seq('S'),
+      Seq(1.0)
+    ),
+    "Duplicated concurrent goals",
+    Seq(
+      Seq('a', 'b')
+    )
+  )
+
+  // Breaks Dotty
+  //
+  // val b7 = Sample(
+  //   "b7",
+  //   HTNLib(
+  //     Set(
+  //       UnordAll('M', IndexedSeq('N', 'D')),
+  //       One('N', Seq('P', 'Q')),
+  //       FullAll('P', IndexedSeq('A')),
+  //       FullAll('Q', IndexedSeq('A', 'B', 'C')),
+  //       Act('A', 'a'),
+  //       Act('B', 'b'),
+  //       Act('C', 'c'),
+  //       Act('D', 'd')
+  //     ),
+  //     Seq('M'),
+  //     Seq(1.0)
+  //   ),
+  //   "",
+  //   Seq(
+  //     Seq('a', 'b', 'c', 'd'),
+  //     Seq('d', 'a', 'b', 'c')
+  //   )
+  // )
+
+  val b8 = Sample(
+    "b8",
+    HTNLib(
+      Set(
+        UnordAll('L', IndexedSeq('M', 'A')),
+        UnordAll('M', IndexedSeq('B', 'C')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "",
+    Seq(
+      Seq('a', 'b', 'c'),
+      Seq('c', 'b', 'a')
+    )
+  )
+
+  val b9 = Sample(
+    "b9",
+    HTNLib(
+      Set(
+        UnordAll('L', IndexedSeq('M', 'A')),
+        UnordAll('M', IndexedSeq('N', 'B')),
+        UnordAll('N', IndexedSeq('C', 'D')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "",
+    Seq(
+      Seq('a', 'b', 'c', 'd'),
+      Seq('d', 'c', 'b', 'a')
+    )
+  )
+
+  val b10 = Sample(
+    "b10",
+    HTNLib(
+      Set(
+        FullAll('L', IndexedSeq('A', 'M')),
+        UnordAll('M', IndexedSeq('B', 'N')),
+        UnordAll('N', IndexedSeq()),
+        Act('A', 'a'),
+        Act('B', 'b')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "Concurrent epsilon rule",
+    Seq(
+      Seq('a', 'b')
+    )
+  )
+
+  val bp0 = Sample(
+    "bp0",
+    HTNLib(
+      Set(
+        All('S', IndexedSeq('A', 'B', 'M'), Array((0,2), (1,2))),
+        UnordAll('M', IndexedSeq('C', 'D')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('S'),
+      Seq(1.0)
+    ),
+    "",
+    Seq(
+      Seq('a', 'b', 'c', 'd')
+    )
+  )
+
+  val bp1 = Sample(
+    "bp1",
+    HTNLib(
+      Set(
+        All('S', IndexedSeq('A', 'B', 'C', 'D'),
+          Array((0,1), (1,2), (1,3))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('S'),
+      Seq(1.0)
+    ),
+    "",
+    Seq(
+   Seq('a', 'b', 'c', 'd'),
+    )
+  )
+
+  val c0 = Sample(
+    "c0",
+    HTNLib(
+      Set(
+        One('S', Seq('F', 'G'), Seq(0.4, 0.6)),
+        FullAll('F', IndexedSeq('C', 'B')),
+        UnordAll('G', IndexedSeq('C', 'D')),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('S'),
+      Seq(1.0)
+    ),
+    "Simplification of C1",
+    Seq(
+      Seq('c', 'd', 'b'),
+      Seq('c', 'b'),
+      Seq('c', 'd')
+    )
   )
 
   /*  Examples from Lisp code `yr/examples/specs.lisp`.
 
-  val a = Sample(
+  val c1 = Sample(
+    "c1",
     HTNLib(
       Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b1
-    (list (ord-and-rule +symterm-htn+ 'U' () 'M', 'P')
-          (ord-and-rule +symterm-htn+ 'M', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'P', '(('A', 'C')) 'A', 'C')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c'))
-  :long-blurb "This library has interleaving subgoals which share their initial lower-level goal $A$."
-  :inputs '((('a', 'a', 'b', 'c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b2
-    (list (ord-and-rule +symterm-htn+ 'R', '(('D', 'S')) 'D', 'S')
-          (ord-and-rule +symterm-htn+ 'S' () 'M', 'N')
-          (ord-and-rule +symterm-htn+ 'M', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'N', '(('C', 'D')) 'C', 'D')
+   (or-rule 'S', IndexedSeq('F', 'G')
+   FullAll('F', IndexedSeq('A', 'C', 'B')),
+          All('G',
+IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
           Act('D', 'd'))
-  :long-blurb "Table construction for this library encounters a multiple-insertion point item in the closure of an item set."
-  :inputs '((('d', 'a', 'c', 'b', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
       ),
-      Seq(),
-      Seq()
+      Seq(''),
+      Seq(1.0)
     ),
-    "",
+    "Variation of B8.",
     Seq(
+   Seq('a', 'd'),
+   Seq('a', 'c', 'b'),
+   Seq('a', 'd', 'c'),
+   Seq('a', 'c', 'd')
     )
   )
 
-(make-planlib-spec 'b3
-    (list (ord-and-rule +symterm-htn+ 'H', '(('A', 'C')) 'A', 'B', 'C')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c'))
-  :long-blurb "In this library, completing one of two interleavable subgoals triggers a third."
-  :inputs '((('a', 'b', 'c') :each-action t)
-            (('a', 'a', 'b', 'c') :each-action t)
-            (('b', 'a', 'c') :each-action t)))
-
-  val a = Sample(
+  val c2 = Sample(
+    "c2",
     HTNLib(
       Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b4
-    (list (ord-and-rule +symterm-htn+ 'L', '(('A', 'C') ('A', 'D')
-                                             ('B', 'C') ('B', 'D'))
-                        'A', 'B', 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :long-blurb "In this library, completing two of four interleavable subgoals triggers the other two."
-  :inputs '((('a', 'b', 'c', 'd') :each-action t)
-            (('a', 'a', 'b', 'c', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b5
-    (list (ord-and-rule +symterm-htn+ 'L', '(('A', 'B') ('A', 'C'))
-                        'A', 'B', 'C')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c'))
-  :long-blurb "In this library, completing one subgoal enables two interleavable ones."
-  :inputs '((('a', 'b', 'c') :each-action t)
-            (('a', 'a', 'b', 'c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b6
-    (list (ord-and-rule +symterm-htn+ 'S' () 'M', 'N')
-          (ord-and-rule +symterm-htn+ 'M', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'N', '(('A', 'B')) 'A', 'B')
-          Act('A', 'a')
-          Act('B', 'b'))
-  :short-blurb "duplicated concurrent goals"
-  :inputs '((('a', 'b') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b7
-    (list (unord-and-rule +symterm-htn+ 'M', 'N', 'D')
-          One('N', 'P', 'Q')
-          FullAll('P', IndexedSeq('A'))
-          FullAll('Q', IndexedSeq('A', 'B', 'C'))
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :inputs '((('a', 'b', 'c', 'd') :each-action t)
-            (('d', 'a', 'b', 'c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b8
-    (list (unord-and-rule +symterm-htn+ 'L', 'M', 'A')
-          (unord-and-rule +symterm-htn+ 'M', 'B', 'C')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c'))
-  :inputs '((('a', 'b', 'c') :each-action t)
-            (('c', 'b', 'a') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b9
-    (list (unord-and-rule +symterm-htn+ 'L', 'M', 'A')
-          (unord-and-rule +symterm-htn+ 'M', 'N', 'B')
-          (unord-and-rule +symterm-htn+ 'N', 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :inputs '((('a', 'b', 'c', 'd') :each-action t)
-            (('d', 'c', 'b', 'a') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'b10
-    (list FullAll('L', IndexedSeq('A', 'M'))
-          (unord-and-rule +symterm-htn+ 'M', 'B', 'N')
-          (unord-and-rule +symterm-htn+ 'N')
-          Act('A', 'a')
-          Act('B', 'b'))
-  :inputs '((('a', 'b') :each-action t))
-  :short-blurb "a concurrent epsilon rule")
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'bp0
-    (list (ord-and-rule 'S', IndexedSeq('(('A', 'M') ('B', 'M'))
-                        'A', 'B', 'M')
-          (unord-and-rule +symterm-htn+ 'M', 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :inputs '((('a', 'b', 'c', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'bp1
-    (list (ord-and-rule 'S', IndexedSeq('(('A', 'B') ('B', 'C') ('B', 'D'))
-                        'A', 'B', 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :inputs '((('a', 'b', 'c', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'c0
-    (list (or-rule 'S', IndexedSeq('F', 'G')
-          (ord-and-rule +symterm-htn+ 'F', '(('C', 'B')) 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'G' nil 'C', 'D')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :inputs '((('c', 'd', 'b') :each-action t)
-            (('c', 'b') :each-action t)
-            (('c', 'd') :each-action t))
-  :short-blurb "simplification of C1")
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'c1
-    (list (or-rule 'S', IndexedSeq('F', 'G')
-          (ord-and-rule +symterm-htn+ 'F', '(('A', 'C') ('C', 'B'))
-                        'A', 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'G', '(('A', 'C') ('A', 'D'))
-                        'A', 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :short-blurb "variation of B8."
-  :inputs '((('a', 'd') :each-action t)
-            (('a', 'c', 'b') :each-action t)
-            (('a', 'd', 'c') :each-action t)
-            (('a', 'c', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'c2
-    (list (ord-and-rule +symterm-htn+ 'L', '(('D', 'P')) 'D', 'P')
+   FullAll('L', IndexedSeq('D', 'P')),
           One('P', 'Q', 'S')
-          (ord-and-rule +symterm-htn+ 'Q', '(('A', 'D')) 'A', 'D')
-          (ord-and-rule +symterm-htn+ 'S' () 'M', 'N')
-          (ord-and-rule +symterm-htn+ 'M', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'N', '(('C', 'D')) 'C', 'D')
+          FullAll('Q', IndexedSeq('A', 'D')),
+          All('S', IndexedSeq('M', 'N') ())
+          FullAll('M', IndexedSeq('A', 'B')),
+          FullAll('N', IndexedSeq('C', 'D')),
+          Act('A', 'a')
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+      ),
+      Seq(''),
+      Seq(1.0)
+    ),
+    "Combining several features",
+    Seq(
+   Seq('d', 'a', 'd'),
+    )
+  )
+
+  val c3 = Sample(
+    "c3",
+    HTNLib(
+      Set(
+   (or-rule 'S', IndexedSeq('F', 'G')
+          All('F',
+IndexedSeq(                        'A', 'B', 'C'), '(('A', 'B') ('A', 'C')))
+          All('G',
+IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
           Act('D', 'd'))
-  :short-blurb "combining several features"
-  :inputs '((('d', 'a', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
       ),
-      Seq(),
-      Seq()
+      Seq(''),
+      Seq(1.0)
     ),
-    "",
+    "Shift leads to a state that could have an empty base set. This case shows why the \\texttt{itemSet} and \texttt{baseSet} must be distinct.",
     Seq(
+   Seq('a', 'c', 'b'),
     )
   )
 
-(make-planlib-spec 'c3
-    (list (or-rule 'S', IndexedSeq('F', 'G')
-          (ord-and-rule +symterm-htn+ 'F', '(('A', 'B') ('A', 'C'))
-                        'A', 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'G', '(('A', 'C') ('A', 'D'))
-                        'A', 'C', 'D')
+  val c4 = Sample(
+    "c4",
+    HTNLib(
+      Set(
+   One('P', 'Q', 'S')
+          FullAll('Q', IndexedSeq('A', 'D')),
+          All('S', IndexedSeq('M', 'N') ())
+          FullAll('M', IndexedSeq('A', 'B')),
+          FullAll('N', IndexedSeq('C', 'D')),
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
-          Act('D', 'd'))
-  :long-blurb "Shift leads to a state that could have an empty base set. This case shows why the \\texttt{itemSet} and \texttt{baseSet} must be distinct.
-"
-  :inputs '((('a', 'c', 'b') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
+          Act('D', 'd')
       ),
-      Seq(),
-      Seq()
+      Seq(''),
+      Seq(1.0)
     ),
-    "",
+    "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without.",
     Seq(
+   Seq('a', 'd'),
     )
   )
 
-(make-planlib-spec 'c4
-    (list One('P', 'Q', 'S')
-          (ord-and-rule +symterm-htn+ 'Q', '(('A', 'D')) 'A', 'D')
-          (ord-and-rule +symterm-htn+ 'S' () 'M', 'N')
-          (ord-and-rule +symterm-htn+ 'M', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'N', '(('C', 'D')) 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :long-blurb "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without."
-  :inputs '((('a', 'd') :each-action t)))
-
-  val a = Sample(
+  val c5 = Sample(
+    "c5",
     HTNLib(
       Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'c5
-    (list (ord-and-rule +symterm-htn+ 'X' () 'D', 'Y')
+   All('X', IndexedSeq('D', 'Y') ()),
           One('Y', 'Z', 'K', 'F')
-          (ord-and-rule +symterm-htn+ 'Z' () 'J', 'C')
-          (ord-and-rule +symterm-htn+ 'K', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'F' () 'A', 'B', 'D')
-          (ord-and-rule +symterm-htn+ 'J', '(('B', 'A')) 'B', 'A')
+          All('Z', IndexedSeq('J', 'C') ()),
+          FullAll('K', IndexedSeq('A', 'B')),
+          All('F', IndexedSeq('A', 'B', 'D') ()),
+          FullAll('J', IndexedSeq('B', 'A')),
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
-          Act('D', 'd'))
-  :long-blurb "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content."
-  :inputs '((('d', 'b', 'a', 'c') :each-action t)
-            (('d', 'c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
+          Act('D', 'd')
       ),
-      Seq(),
-      Seq()
+      Seq(''),
+      Seq(1.0)
     ),
-    "",
+    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
     Seq(
+   Seq('d', 'b', 'a', 'c'),
+   Seq('d', 'c'),
     )
   )
 
-(make-planlib-spec 'c6
-    (list (or-rule 'S', IndexedSeq('L', 'M', 'N')
-          (ord-and-rule +symterm-htn+ 'L', '(('A', 'B')) 'A', 'B')
-          (ord-and-rule +symterm-htn+ 'M', '(('C', 'D')) 'C', 'D')
-          (ord-and-rule +symterm-htn+ 'N', '() 'F', 'G')
+  val c6 = Sample(
+    "c6",
+    HTNLib(
+      Set(
+   (or-rule 'S', IndexedSeq('L', 'M', 'N')
+          FullAll('L', IndexedSeq('A', 'B')),
+          FullAll('M', IndexedSeq('C', 'D')),
+          All('N', IndexedSeq('F', 'G'), '()),
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
           Act('D', 'd')
           Act('F', 'f')
           Act('G', 'g'))
-  :inputs '((('a', 'c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
       ),
-      Seq(),
-      Seq()
+      Seq(''),
+      Seq(1.0)
     ),
     "",
     Seq(
+   Seq('a', 'c')
     )
   )
 
-(make-planlib-spec 'c7
-    (list FullAll('M', IndexedSeq('N', 'D'))
+  val c7 = Sample(
+    "c7",
+    HTNLib(
+      Set(
+   FullAll('M', IndexedSeq('N', 'D'))
           One('N', 'P', 'Q')
-          (unord-and-rule +symterm-htn+ 'P', 'A')
-          (unord-and-rule +symterm-htn+ 'Q', 'A', 'B', 'C')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :inputs '((('a', 'b', 'c', 'd') :each-action t)
-            (('a') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'c8
-    (list (unord-and-rule +symterm-htn+ 'X', 'C', 'Y')
-          One('Y', 'Z', 'F')
-          FullAll('Z', IndexedSeq('B', 'A'))
-          (unord-and-rule +symterm-htn+ 'F', 'A', 'B')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c'))
-  :long-blurb "Simplification of C5 to isolate a bug."
-  :inputs '((('b', 'a') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'cp0
-    (list (ord-and-rule +symterm-htn+ 'F', '(('A', 'B') ('A', 'C'))
-                        'A', 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'G', '(('A', 'C') ('A', 'D'))
-                        'A', 'C', 'D')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :intended '('F', 'G')
-  :long-blurb "Variation of B8 with no $K$, and both $F$ and $G$ intended."
-  :inputs '((('a', 'c', 'b') :each-action t)
-            (('a', 'c') :each-action t)
-            (('a') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'cp1
-    (list (ord-and-rule +symterm-htn+ 'F', '() 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'G', '() 'C', 'D')
-          ;; Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :intended '('F', 'G')
-  :long-blurb "Variation of B8 with the split at the very top level."
-  :inputs '((('c', 'b') :each-action t)
-            (('c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'cp2
-    (list (ord-and-rule +symterm-htn+ 'F', '() 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'G', '() 'C', 'D')
-          (ord-and-rule +symterm-htn+ 'H', '(('A', 'B')) 'A', 'B')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :intended '('F', 'G', 'H')
-  :long-blurb "Variation of B8 comparing split and alt."
-  :inputs '((('a', 'b') :each-action t)
-            (('c') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'cp3
-    (list One('M', 'P', 'Q')
-          (ord-and-rule +symterm-htn+ 'N', '(('A', 'C') ('B', 'C'))
-                        'A', 'B', 'C')
-          (ord-and-rule +symterm-htn+ 'P', '(('A', 'D')) 'A', 'D')
-          (ord-and-rule +symterm-htn+ 'Q' nil 'B', 'C')
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :intended '('M', 'N')
-  :inputs '((('c') :each-action t)
-            (('a', 'b') :each-action t)
-            (('a', 'd') :each-action t)))
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'cp4
-    (list (ord-and-rule +symterm-htn+ 'F', '(('C', 'B')) 'B', 'C')
-          (unord-and-rule +symterm-htn+ 'G', 'C', 'D')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
-  :intended '('F', 'G')
-  :inputs '((('c') :each-action t)
-            (('c', 'b') :each-action t)
-            (('c', 'd', 'b') :each-action t))
-  :long-blurb "C0 without the single top-level goal.")
-
-  val a = Sample(
-    HTNLib(
-      Set(
-      ),
-      Seq(),
-      Seq()
-    ),
-    "",
-    Seq(
-    )
-  )
-
-(make-planlib-spec 'cp5
-    (list FullAll('M', IndexedSeq('A', 'B', 'C'))
-          (ord-and-rule +symterm-htn+ 'N', '(('A', 'B') ('B', 'D') ('B', 'E'))
-                        'A', 'B', 'D', 'E')
+   UnordAll('P', IndexedSeq('A')),
+   UnordAll('Q', IndexedSeq('A', 'B', 'C')),
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
           Act('D', 'd')
-          Act('E', 'e'))
-  :intended '('M', 'N')
-  :inputs '((('a', 'b', 'c') :each-action t)
-            (('a', 'b', 'd', 'e') :each-action t)
-            (('a') :each-action t)))
+      ),
+      Seq(''),
+      Seq(1.0)
+    ),
+    "",
+    Seq(
+   Seq('a', 'b', 'c', 'd'),
+   Seq('a')
+    )
+  )
 
-  val a = Sample(
+  val c8 = Sample(
+    "c8",
     HTNLib(
       Set(
+   UnordAll('X', IndexedSeq('C', 'Y')),
+          One('Y', 'Z', 'F')
+          FullAll('Z', IndexedSeq('B', 'A'))
+   UnordAll('F', IndexedSeq('A', 'B')),
+          Act('A', 'a')
+          Act('B', 'b')
+          Act('C', 'c')
       ),
-      Seq(),
+      Seq(''),
+      Seq(1.0)
+    ),
+    "Simplification of C5 to isolate a bug.",
+    Seq(
+   Seq('b', 'a')
+    )
+  )
+
+  val cp0 = Sample(
+    "cp0",
+    HTNLib(
+      Set(
+   All('F', IndexedSeq('A', 'B', 'C'), '(('A', 'B') ('A', 'C'))),
+          All('G', IndexedSeq('A', 'C', 'D'), '(('A', 'C') ('A', 'D'))),
+          Act('A', 'a')
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+      ),
+      Seq('F', 'G'),
+      Seq()
+    ),
+    "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
+    Seq(
+   Seq('a', 'c', 'b'),
+   Seq('a', 'c'),
+   Seq('a')
+    )
+  )
+
+  val cp1 = Sample(
+    "cp1",
+    HTNLib(
+      Set(
+   All('F', IndexedSeq('B', 'C'), '()),
+          All('G', IndexedSeq('C', 'D'), '()),
+          ;; Act('A', 'a')
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+      ),
+      Seq('F', 'G'),
+      Seq()
+    ),
+    "Variation of B8 with the split at the very top level.",
+    Seq(
+   Seq('c', 'b'),
+   Seq('c')
+    )
+  )
+
+  val cp2 = Sample(
+    "cp2",
+    HTNLib(
+      Set(
+   All('F', IndexedSeq('B', 'C'), '()),
+          All('G', IndexedSeq('C', 'D'), '()),
+          FullAll('H', IndexedSeq('A', 'B')),
+          Act('A', 'a')
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+      ),
+      Seq('F', 'G', 'H'),
+      Seq()
+    ),
+    "Variation of B8 comparing split and alt.",
+    Seq(
+   Seq('a', 'b'),
+   Seq('c')
+    )
+  )
+
+  val cp3 = Sample(
+    "cp3",
+    HTNLib(
+      Set(
+   One('M', 'P', 'Q')
+          All('N', IndexedSeq('A', 'B', 'C'), '(('A', 'C') ('B', 'C'))),
+          FullAll('P', IndexedSeq('A', 'D')),
+          All('Q', IndexedSeq('B', 'C') nil),
+          Act('A', 'a')
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+      ),
+      Seq('M', 'N'),
       Seq()
     ),
     "",
     Seq(
+   Seq('c'),
+   Seq('a', 'b'),
+   Seq('a', 'd')
     )
   )
 
-(make-planlib-spec 'cp6
-    (list FullAll('M', IndexedSeq('A', 'B', 'C'))
-          (ord-and-rule +symterm-htn+ 'N', '(('A', 'B')
-                                             ('B', 'D') ('B', 'E')
-                                             ('D', 'F') ('D', 'G')
-                                             ('E', 'F') ('E', 'G'))
-                        'A', 'B', 'D', 'E', 'F', 'G')
+  val cp4 = Sample(
+    "cp4",
+    HTNLib(
+      Set(
+   FullAll('F', IndexedSeq('B', 'C')),
+   UnordAll('G', IndexedSeq('C', 'D')),
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+      ),
+      Seq('F', 'G'),
+      Seq()
+    ),
+    "C0 without the single top-level goal.",
+    Seq(
+   Seq('c'),
+   Seq('c', 'b'),
+   Seq('c', 'd', 'b')
+    )
+  )
+
+  val cp5 = Sample(
+    "cp5",
+    HTNLib(
+      Set(
+   FullAll('M', IndexedSeq('A', 'B', 'C'))
+          All('N',
+IndexedSeq(                        'A', 'B', 'D', 'E'), '(('A', 'B') ('B', 'D') ('B', 'E'))),
           Act('A', 'a')
           Act('B', 'b')
           Act('C', 'c')
           Act('D', 'd')
           Act('E', 'e')
+      ),
+      Seq('M', 'N'),
+      Seq()
+    ),
+    "",
+    Seq(
+   Seq('a', 'b', 'c'),
+   Seq('a', 'b', 'd', 'e'),
+   Seq('a')
+    )
+  )
+
+  val cp6 = Sample(
+    "cp6",
+    HTNLib(
+      Set(
+   FullAll('M', IndexedSeq('A', 'B', 'C'))
+          All('N',
+IndexedSeq(                        'A', 'B', 'D', 'E', 'F', 'G'), '(('A', 'B')
+                                             ('B', 'D') ('B', 'E')
+                                             ('D', 'F') ('D', 'G')
+                                             ('E', 'F') ('E', 'G'))),
+          Act,
+          Act('B', 'b')
+          Act('C', 'c')
+          Act('D', 'd')
+          Act('E', 'e')
           Act('F', 'f')
-          Act('G', 'g'))
-  :intended '('M', 'N')
-  :inputs '((('a', 'b', 'c') :each-action t)
-            (('a', 'b', 'd', 'e', 'f', 'g') :each-action t)
-            (('a', 'b', 'e', 'd', 'f', 'g') :each-action t)
-            (('a') :each-action t)))
+          Act('G', 'g')
+      ),
+      Seq('M', 'N'),
+      Seq()
+    ),
+    "",
+    Seq(
+   Seq('a', 'b', 'c'),
+   Seq('a', 'b', 'd', 'e', 'f', 'g'),
+   Seq('a', 'b', 'e', 'd', 'f', 'g'),
+   Seq('a')
+    )
+  )
 
    */
 

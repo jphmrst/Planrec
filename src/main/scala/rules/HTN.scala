@@ -71,6 +71,16 @@ object FullAll {
   }
 }
 
+/**
+  * Shortcut for [[All]] which where the ordering list is empty, and
+  * so the subgoals are unordered.
+  */
+object UnordAll {
+  def apply[T, H, S](goal: T, subgoals: IndexedSeq[T])
+    (using termImpl: TermImpl[T, H, S]):
+      All[T, H, S] = All(goal, subgoals, Array())
+}
+
 /** An "or-rule", indicating that a goal can be fulfilled by meeting
   * any one of the given subgoals.
   *
