@@ -559,77 +559,72 @@ object HTNs {
     )
   )
 
-  /*  Examples from Lisp code `yr/examples/specs.lisp`.
-
   val c1 = Sample(
     "c1",
     HTNLib(
       Set(
-   (or-rule 'S', IndexedSeq('F', 'G')
-   FullAll('F', IndexedSeq('A', 'C', 'B')),
-          All('G',
-IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
+        One('S', IndexedSeq('F', 'G'), IndexedSeq(0.4, 0.6)),
+        FullAll('F', IndexedSeq('A', 'C', 'B')),
+        All('G', IndexedSeq('A', 'C', 'D'), Array((0,1), (0,2))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
-      Seq(''),
+      Seq('S'),
       Seq(1.0)
     ),
     "Variation of B8.",
     Seq(
-   Seq('a', 'd'),
-   Seq('a', 'c', 'b'),
-   Seq('a', 'd', 'c'),
-   Seq('a', 'c', 'd')
+      Seq('a', 'd'),
+      Seq('a', 'c', 'b'),
+      Seq('a', 'd', 'c'),
+      Seq('a', 'c', 'd')
     )
   )
 
-  val c2 = Sample(
-    "c2",
-    HTNLib(
-      Set(
-   FullAll('L', IndexedSeq('D', 'P')),
-          One('P', 'Q', 'S')
-          FullAll('Q', IndexedSeq('A', 'D')),
-          All('S', IndexedSeq('M', 'N') ())
-          FullAll('M', IndexedSeq('A', 'B')),
-          FullAll('N', IndexedSeq('C', 'D')),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
-      ),
-      Seq(''),
-      Seq(1.0)
-    ),
-    "Combining several features",
-    Seq(
-   Seq('d', 'a', 'd'),
-    )
-  )
+  // val c2 = Sample(
+  //   "c2",
+  //   HTNLib(
+  //     Set(
+  //       FullAll('L', IndexedSeq('D', 'P')),
+  //       One('P', IndexedSeq('Q', 'S')),
+  //       FullAll('Q', IndexedSeq('A', 'D')),
+  //       UnordAll('S', IndexedSeq('M', 'N')),
+  //       FullAll('M', IndexedSeq('A', 'B')),
+  //       FullAll('N', IndexedSeq('C', 'D')),
+  //       Act('A', 'a'),
+  //       Act('B', 'b'),
+  //       Act('C', 'c'),
+  //       Act('D', 'd')
+  //     ),
+  //     Seq('L'),
+  //     Seq(1.0)
+  //   ),
+  //   "Combining several features",
+  //   Seq(
+  //     Seq('d', 'a', 'd'),
+  //   )
+  // )
 
   val c3 = Sample(
     "c3",
     HTNLib(
       Set(
-   (or-rule 'S', IndexedSeq('F', 'G')
-          All('F',
-IndexedSeq(                        'A', 'B', 'C'), '(('A', 'B') ('A', 'C')))
-          All('G',
-IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd'))
+        One('S', IndexedSeq('F', 'G'), IndexedSeq(0.4, 0.6)),
+        All('F', IndexedSeq('A', 'B', 'C'), Array((0,1), (0,2))),
+        All('G', IndexedSeq('A', 'C', 'D'), Array((0,1), (0,2))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
-      Seq(''),
+      Seq('S'),
       Seq(1.0)
     ),
     "Shift leads to a state that could have an empty base set. This case shows why the \\texttt{itemSet} and \texttt{baseSet} must be distinct.",
     Seq(
-   Seq('a', 'c', 'b'),
+      Seq('a', 'c', 'b'),
     )
   )
 
@@ -637,71 +632,71 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "c4",
     HTNLib(
       Set(
-   One('P', 'Q', 'S')
-          FullAll('Q', IndexedSeq('A', 'D')),
-          All('S', IndexedSeq('M', 'N') ())
-          FullAll('M', IndexedSeq('A', 'B')),
-          FullAll('N', IndexedSeq('C', 'D')),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        One('P', Seq('Q', 'S'), Seq(0.4, 0.6)),
+        FullAll('Q', IndexedSeq('A', 'D')),
+        UnordAll('S', IndexedSeq('M', 'N')),
+        FullAll('M', IndexedSeq('A', 'B')),
+        FullAll('N', IndexedSeq('C', 'D')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
-      Seq(''),
+      Seq('P'),
       Seq(1.0)
     ),
     "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without.",
     Seq(
-   Seq('a', 'd'),
+      Seq('a', 'd'),
     )
   )
 
-  val c5 = Sample(
-    "c5",
-    HTNLib(
-      Set(
-   All('X', IndexedSeq('D', 'Y') ()),
-          One('Y', 'Z', 'K', 'F')
-          All('Z', IndexedSeq('J', 'C') ()),
-          FullAll('K', IndexedSeq('A', 'B')),
-          All('F', IndexedSeq('A', 'B', 'D') ()),
-          FullAll('J', IndexedSeq('B', 'A')),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
-      ),
-      Seq(''),
-      Seq(1.0)
-    ),
-    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
-    Seq(
-   Seq('d', 'b', 'a', 'c'),
-   Seq('d', 'c'),
-    )
-  )
+  // val c5 = Sample(
+  //   "c5",
+  //   HTNLib(
+  //     Set(
+  //       UnordAll('X', IndexedSeq('D', 'Y')),
+  //       One('Y', Seq('Z', 'K', 'F')),
+  //       UnordAll('Z', IndexedSeq('J', 'C')),
+  //       FullAll('K', IndexedSeq('A', 'B')),
+  //       UnordAll('F', IndexedSeq('A', 'B', 'D')),
+  //       FullAll('J', IndexedSeq('B', 'A')),
+  //       Act('A', 'a'),
+  //       Act('B', 'b'),
+  //       Act('C', 'c'),
+  //       Act('D', 'd')
+  //     ),
+  //     Seq('X'),
+  //     Seq(1.0)
+  //   ),
+  //   "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
+  //   Seq(
+  //     Seq('d', 'b', 'a', 'c'),
+  //     Seq('d', 'c')
+  //   )
+  // )
 
   val c6 = Sample(
     "c6",
     HTNLib(
       Set(
-   (or-rule 'S', IndexedSeq('L', 'M', 'N')
-          FullAll('L', IndexedSeq('A', 'B')),
-          FullAll('M', IndexedSeq('C', 'D')),
-          All('N', IndexedSeq('F', 'G'), '()),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
-          Act('F', 'f')
-          Act('G', 'g'))
+        One('S', Seq('L', 'M', 'N'), Seq(0.2, 0.3, 0.5)),
+        FullAll('L', IndexedSeq('A', 'B')),
+        FullAll('M', IndexedSeq('C', 'D')),
+        UnordAll('N', IndexedSeq('F', 'G')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd'),
+        Act('F', 'f'),
+        Act('G', 'g')
       ),
-      Seq(''),
+      Seq('S'),
       Seq(1.0)
     ),
     "",
     Seq(
-   Seq('a', 'c')
+      Seq('a', 'c')
     )
   )
 
@@ -709,22 +704,22 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "c7",
     HTNLib(
       Set(
-   FullAll('M', IndexedSeq('N', 'D'))
-          One('N', 'P', 'Q')
-   UnordAll('P', IndexedSeq('A')),
-   UnordAll('Q', IndexedSeq('A', 'B', 'C')),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        FullAll('M', IndexedSeq('N', 'D')),
+        One('N', Seq('P', 'Q'), Seq(0.4, 0.6)),
+        UnordAll('P', IndexedSeq('A')),
+        UnordAll('Q', IndexedSeq('A', 'B', 'C')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
-      Seq(''),
+      Seq('M'),
       Seq(1.0)
     ),
     "",
     Seq(
-   Seq('a', 'b', 'c', 'd'),
-   Seq('a')
+      Seq('a', 'b', 'c', 'd'),
+      Seq('a')
     )
   )
 
@@ -732,63 +727,63 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "c8",
     HTNLib(
       Set(
-   UnordAll('X', IndexedSeq('C', 'Y')),
-          One('Y', 'Z', 'F')
-          FullAll('Z', IndexedSeq('B', 'A'))
-   UnordAll('F', IndexedSeq('A', 'B')),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
+        UnordAll('X', IndexedSeq('C', 'Y')),
+        One('Y', Seq('Z', 'F'), Seq(0.4, 0.6)),
+        FullAll('Z', IndexedSeq('B', 'A')),
+        UnordAll('F', IndexedSeq('A', 'B')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c')
       ),
-      Seq(''),
+      Seq('X'),
       Seq(1.0)
     ),
     "Simplification of C5 to isolate a bug.",
     Seq(
-   Seq('b', 'a')
+      Seq('b', 'a')
     )
   )
 
-  val cp0 = Sample(
-    "cp0",
-    HTNLib(
-      Set(
-   All('F', IndexedSeq('A', 'B', 'C'), '(('A', 'B') ('A', 'C'))),
-          All('G', IndexedSeq('A', 'C', 'D'), '(('A', 'C') ('A', 'D'))),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
-      ),
-      Seq('F', 'G'),
-      Seq()
-    ),
-    "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
-    Seq(
-   Seq('a', 'c', 'b'),
-   Seq('a', 'c'),
-   Seq('a')
-    )
-  )
+  // val cp0 = Sample(
+  //   "cp0",
+  //   HTNLib(
+  //     Set(
+  //       All('F', IndexedSeq('A', 'B', 'C'), Array((0,1), (0.2))),
+  //       All('G', IndexedSeq('A', 'C', 'D'), Array((0,1), (0.2))),
+  //       Act('A', 'a'),
+  //       Act('B', 'b'),
+  //       Act('C', 'c'),
+  //       Act('D', 'd')
+  //     ),
+  //     Seq('F', 'G'),
+  //     Seq(0.4, 0.6)
+  //   ),
+  //   "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
+  //   Seq(
+  //     Seq('a', 'c', 'b'),
+  //     Seq('a', 'c'),
+  //     Seq('a')
+  //   )
+  // )
 
   val cp1 = Sample(
     "cp1",
     HTNLib(
       Set(
-   All('F', IndexedSeq('B', 'C'), '()),
-          All('G', IndexedSeq('C', 'D'), '()),
-          ;; Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        UnordAll('F', IndexedSeq('B', 'C')),
+        UnordAll('G', IndexedSeq('C', 'D')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
       Seq('F', 'G'),
-      Seq()
+      Seq(0.4, 0.6)
     ),
     "Variation of B8 with the split at the very top level.",
     Seq(
-   Seq('c', 'b'),
-   Seq('c')
+      Seq('c', 'b'),
+      Seq('c')
     )
   )
 
@@ -796,21 +791,21 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "cp2",
     HTNLib(
       Set(
-   All('F', IndexedSeq('B', 'C'), '()),
-          All('G', IndexedSeq('C', 'D'), '()),
-          FullAll('H', IndexedSeq('A', 'B')),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        UnordAll('F', IndexedSeq('B', 'C')),
+        UnordAll('G', IndexedSeq('C', 'D')),
+        FullAll('H', IndexedSeq('A', 'B')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
       Seq('F', 'G', 'H'),
-      Seq()
+      Seq(0.2, 0.3, 0.5)
     ),
     "Variation of B8 comparing split and alt.",
     Seq(
-   Seq('a', 'b'),
-   Seq('c')
+      Seq('a', 'b'),
+      Seq('c')
     )
   )
 
@@ -818,23 +813,23 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "cp3",
     HTNLib(
       Set(
-   One('M', 'P', 'Q')
-          All('N', IndexedSeq('A', 'B', 'C'), '(('A', 'C') ('B', 'C'))),
-          FullAll('P', IndexedSeq('A', 'D')),
-          All('Q', IndexedSeq('B', 'C') nil),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        One('M', Seq('P', 'Q'), Seq(0.4, 0.6)),
+        All('N', IndexedSeq('A', 'B', 'C'), Array((0,1), (0,2))),
+        FullAll('P', IndexedSeq('A', 'D')),
+        UnordAll('Q', IndexedSeq('B', 'C')),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
       Seq('M', 'N'),
-      Seq()
+      Seq(0.3, 0.7)
     ),
     "",
     Seq(
-   Seq('c'),
-   Seq('a', 'b'),
-   Seq('a', 'd')
+      Seq('c'),
+      Seq('a', 'b'),
+      Seq('a', 'd')
     )
   )
 
@@ -842,20 +837,20 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "cp4",
     HTNLib(
       Set(
-   FullAll('F', IndexedSeq('B', 'C')),
-   UnordAll('G', IndexedSeq('C', 'D')),
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        FullAll('F', IndexedSeq('B', 'C')),
+        UnordAll('G', IndexedSeq('C', 'D')),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
       ),
       Seq('F', 'G'),
-      Seq()
+      Seq(0.4, 0.6)
     ),
     "C0 without the single top-level goal.",
     Seq(
-   Seq('c'),
-   Seq('c', 'b'),
-   Seq('c', 'd', 'b')
+      Seq('c'),
+      Seq('c', 'b'),
+      Seq('c', 'd', 'b')
     )
   )
 
@@ -863,58 +858,51 @@ IndexedSeq(                        'A', 'C', 'D'), '(('A', 'C') ('A', 'D')))
     "cp5",
     HTNLib(
       Set(
-   FullAll('M', IndexedSeq('A', 'B', 'C'))
-          All('N',
-IndexedSeq(                        'A', 'B', 'D', 'E'), '(('A', 'B') ('B', 'D') ('B', 'E'))),
-          Act('A', 'a')
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
+        FullAll('M', IndexedSeq('A', 'B', 'C')),
+        All('N', IndexedSeq('A', 'B', 'D', 'E'),
+          Array((0,1), (1,2), (1,3))),
+          Act('A', 'a'),
+          Act('B', 'b'),
+          Act('C', 'c'),
+          Act('D', 'd'),
           Act('E', 'e')
       ),
       Seq('M', 'N'),
-      Seq()
+      Seq(0.4, 0.6)
     ),
     "",
     Seq(
-   Seq('a', 'b', 'c'),
-   Seq('a', 'b', 'd', 'e'),
-   Seq('a')
+      Seq('a', 'b', 'c'),
+      Seq('a', 'b', 'd', 'e'),
+      Seq('a')
     )
   )
 
-  val cp6 = Sample(
-    "cp6",
-    HTNLib(
-      Set(
-   FullAll('M', IndexedSeq('A', 'B', 'C'))
-          All('N',
-IndexedSeq(                        'A', 'B', 'D', 'E', 'F', 'G'), '(('A', 'B')
-                                             ('B', 'D') ('B', 'E')
-                                             ('D', 'F') ('D', 'G')
-                                             ('E', 'F') ('E', 'G'))),
-          Act,
-          Act('B', 'b')
-          Act('C', 'c')
-          Act('D', 'd')
-          Act('E', 'e')
-          Act('F', 'f')
-          Act('G', 'g')
-      ),
-      Seq('M', 'N'),
-      Seq()
-    ),
-    "",
-    Seq(
-   Seq('a', 'b', 'c'),
-   Seq('a', 'b', 'd', 'e', 'f', 'g'),
-   Seq('a', 'b', 'e', 'd', 'f', 'g'),
-   Seq('a')
-    )
-  )
-
-   */
-
-
+  // val cp6 = Sample(
+  //   "cp6",
+  //   HTNLib(
+  //     Set(
+  //       FullAll('M', IndexedSeq('A', 'B', 'C')),
+  //       All('N', IndexedSeq('A', 'B', 'D', 'E', 'F', 'G'),
+  //         Array((0,1), (1,2) (1,3), (2,4), (2,5), (3,4), (3,5))),
+  //       Act('A', 'a'),
+  //       Act('B', 'b'),
+  //       Act('C', 'c'),
+  //       Act('D', 'd'),
+  //       Act('E', 'e'),
+  //       Act('F', 'f'),
+  //       Act('G', 'g')
+  //     ),
+  //     Seq('M', 'N'),
+  //     Seq(0.4, 0.6)
+  //   ),
+  //   "",
+  //   Seq(
+  //     Seq('a', 'b', 'c'),
+  //     Seq('a', 'b', 'd', 'e', 'f', 'g'),
+  //     Seq('a', 'b', 'e', 'd', 'f', 'g'),
+  //     Seq('a')
+  //   )
+  // )
 }
 
