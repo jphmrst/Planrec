@@ -55,6 +55,22 @@ case class All[T, H, S](
   }
 }
 
+/**
+  * Shortcut for [[All]] which builds and uses the list of all pairs
+  * for a total order among the subgoals.
+  */
+object FullAll {
+  def apply[T, H, S](goal: T, subgoals: IndexedSeq[T])
+    (using termImpl: TermImpl[T, H, S]):
+      All[T, H, S] = {
+    val pairs = Array.newBuilder[(Int,Int)]
+    for(i <- 1 to subgoals.length - 1) {
+      pairs += ((i - 1, i))
+    }
+    All(goal, subgoals, pairs.result())
+  }
+}
+
 /** An "or-rule", indicating that a goal can be fulfilled by meeting
   * any one of the given subgoals.
   *
