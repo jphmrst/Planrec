@@ -18,17 +18,17 @@ import org.maraist.planrec.yr.table.Item.*
 import org.maraist.fa.hyperedges.{HyperedgeNDFA,HyperedgeDFA}
 import org.maraist.fa.hyperedges.impl.HashHyperedgeNDFABuilder
 
-case class Ind[T, H](val rule: HTNrule[T, H])
+case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 
-class Table[T,H,S](val library: HTNLib[T,H])(using TermImpl[T,H,S]) {
+class Table[T, H, S](val library: HTNLib[T, H, S])(using TermImpl[T, H, S]) {
 
   // Commenting out while debugging Rule extension methods
 
-  val dfa: HyperedgeDFA[Set[Node[T,H]], H] = {
-    val nfaBuilder = new HashHyperedgeNDFABuilder[Node[T,H], H]()
+  val dfa: HyperedgeDFA[Set[Node[T,H,S]], H] = {
+    val nfaBuilder = new HashHyperedgeNDFABuilder[Node[T,H,S], H]()
 
     // Queue for all of the items which need to be processed
-    val itemsQueue = new Queue[(Option[(Item[T, H], T)], Item[T, H])]
+    val itemsQueue = new Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]
 
     // Add each rule goal term head as a state
     for (rule <- library.rules) do {
