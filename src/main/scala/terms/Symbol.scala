@@ -9,6 +9,7 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.terms
+import org.maraist.latex.{LaTeXdoc,LaTeXRenderer}
 
 object Symbol {
   given SymbolAsTerm: TermImpl[Symbol, Symbol, Unit] with
@@ -19,4 +20,10 @@ object Symbol {
     def getUnifier(t1: Symbol, t2: Symbol): Option[Unit] =
       if t1 == t2 then Some(()) else None
     def substitute(t: Symbol, s: Unit): Symbol = t
+
+  given RenderSymbolAsTerm: LaTeXRenderer[Symbol] with
+    override def toLaTeX(doc: LaTeXdoc, s: Symbol) = {
+      doc ++= s.toString()
+    }
+
 }
