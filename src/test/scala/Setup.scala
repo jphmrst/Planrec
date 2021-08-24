@@ -10,6 +10,8 @@
 
 package org.maraist.planrec.generaltest
 import scala.collection.immutable.{Seq,IndexedSeq}
+import org.maraist.planrec.terms.Term.
+  {RenderCharAsTerm, RenderStringAsTerm}
 
 object RuleItemSamples1 {
   import org.maraist.planrec.rules.{One,All,Act,HTNLib}
