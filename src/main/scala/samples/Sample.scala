@@ -52,20 +52,24 @@ object Sample extends Sampler {
   }
 
   def addSamples(guide: LaTeXdoc): FilesCleaner = {
-    val cleanup = newCleaner()
+    val cleaner = newCleaner()
     for (sample <- samples) { addSample(guide, sample, cleaner) }
-    cleanup
+    cleaner
   }
 
   def addSample(guide: LaTeXdoc, sample: Sample, cleaner: FilesCleaner) = {
-    guide ++= s"\\section{${sample.name}}\n"
-
+    guide ++= "\\section{"
+    if (!sample.desc.equals("")) guide ++= s"${sample.desc} --- "
+    guide ++= s"${sample.name}}\n"
+    if (!sample.essay.equals("")) guide ++=/ sample.essay
+    guide ++= "\\begin{center}\n"
+    sample.library.toLaTeX(guide)
+    guide ++= "\\end{center}\n"
     // TODO
   }
 
   @main def writeSamples: Unit = {
     HTNs.load
-    println(samplesBank.size)
     val guide = new LaTeXdoc("samples")
 
     guide.addPackage("geometry", "margin=1in")
