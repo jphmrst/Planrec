@@ -37,10 +37,10 @@ class YRErr[T, H] extends RuntimeException {
 object YR
     extends Recognizer[HTNrule, HTNLib, TablesLib, YRSession, YRExpl, YRErr] {
   override def validLibrary[T, H, S](lib: HTNLib[T, H, S])
-    (using impl: TermImpl[T, H, ?]):
+    (using impl: TermImpl[T, H, S]):
       List[YRErr[T, H]] = ???
   override def prepareLibrary[T, H, S](lib: HTNLib[T, H, S])
-    (using impl: TermImpl[T, H, ?]):
+    (using impl: TermImpl[T, H, S]):
       TablesLib[T, H, S] = ???
 }
 
