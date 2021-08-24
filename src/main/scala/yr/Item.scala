@@ -18,6 +18,9 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
 
+
+type NFAbuild[T, H, S] = NDFABuilder[Item.Node[T, H, S], ?, ?, ?, ?]
+
 /** This trait links one type of [[HTNrule]] with the type of item
   * positions within that rule, and the implementation of item
   * operations for the rule/position.  It may be that not every rule
@@ -59,7 +62,7 @@ sealed trait RuleItem[
     */
   def queueInitialRuleForms[I >: PosType[T, H, S]](
     rule: RuleType[T, H, S],
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(I, T)], I)]
   ): Unit =
     queue.enqueue((None, initialItem(rule)))
@@ -115,7 +118,7 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     * @param queue Queue of items to subsequently be added to the NFA.
     */
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit
 
@@ -131,7 +134,7 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     */
   def encodeItemTransition(
     prev: Option[(Item[T, H, S], T)],
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit
 
@@ -196,7 +199,7 @@ case class AllItem[T, H, S](
   def triggers: Set[T] = for((trigger, _) <- goalHints) yield trigger
 
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = {
 
@@ -206,7 +209,7 @@ case class AllItem[T, H, S](
 
   def encodeItemTransition(
     prev: Option[(Item[T, H, S], T)],
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = {
 
@@ -256,13 +259,13 @@ case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
   def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
 
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 
   def encodeItemTransition(
     prev: Option[(Item[T, H, S], T)],
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 }
@@ -293,13 +296,13 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
   def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
 
   def encodeItemNode(
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 
   def encodeItemTransition(
     prev: Option[(Item[T, H, S], T)],
-    nfa: NDFABuilder[Item.Node[T, H, S],?,?,?,?],
+    nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit = ???
 }
