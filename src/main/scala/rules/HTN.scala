@@ -60,8 +60,25 @@ case class All[T, H, S](
   def toLaTeX(doc: LaTeXdoc):
       Unit = {
     termRender.toLaTeX(doc, goal)
-    doc ++= " & ::= "
-    ???
+    var sep = " & ::= "
+    for(subgoal <- subgoals) {
+      doc ++= sep
+      termRender.toLaTeX(doc, subgoal)
+      sep = "\\,"
+    }
+
+    sep = " ($"
+    var fin = ""
+    for (pair <- order) {
+      pair match {
+        case (a,b) => {
+          doc ++= s"$sep$a < $b"
+        }
+      }
+      sep = ", "
+      fin = "$)"
+    }
+    doc ++= fin
   }
 }
 
@@ -125,7 +142,7 @@ case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Dou
     for(subgoal <- subgoals) {
       doc ++= sep
       termRender.toLaTeX(doc, subgoal)
-      sep = " | "
+      sep = " $|$ "
     }
   }
 }
@@ -141,7 +158,7 @@ case class Act[T, H, S](val goal: T, val action: T)
   def toLaTeX(doc: LaTeXdoc):
       Unit = {
     termRender.toLaTeX(doc, goal)
-    var sep = " & ::= "
+    doc ++= " & ::= "
     termRender.toLaTeX(doc, action)
   }
 }
@@ -158,10 +175,12 @@ object HTN {
 import HTN.*
 import org.maraist.planrec.PlanLibrary
 
-class HTNLib[T, H, S](
-  val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double]
-)(using TermImpl[T, H, S])
-    extends PlanLibrary[HTNrule, T, H, S] {
+class HTNLib[T, H, S]
+  (val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double])
+  (using TermImpl[T, H, S])
+  (using termRender: LaTeXRenderer[T])
+    extends PlanLibrary[HTNrule, T, H, S]
+    with LaTeXRenderable {
 
   if top.length != topProbs.length
   then throw new IllegalArgumentException(
@@ -192,5 +211,14 @@ class HTNLib[T, H, S](
       }
     }
     builder.result()
+  }
+
+  def toLaTeX(doc: LaTeXdoc): Unit = {
+    doc ++= "\\begin{tabular}{r@{~}l}\n"
+    for(rule <- rules) {
+      rule.toLaTeX(doc)
+      doc ++= "\\\\\n"
+    }
+    doc ++= "\\end{tabular}\n"
   }
 }
