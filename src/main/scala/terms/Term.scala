@@ -90,7 +90,9 @@ extension [T, H, S](t1: T)(using impl: TermImpl[T, H, S]) {
 object Term {
   export org.maraist.planrec.terms.TermImpl
   export org.maraist.planrec.terms.{>?<, >+<, >><<, termHead, subst}
-  export org.maraist.planrec.terms.String.StringAsTerm
-  export org.maraist.planrec.terms.Symbol.SymbolAsTerm
-  export org.maraist.planrec.terms.Char.CharAsTerm
+  export org.maraist.planrec.terms.String.
+    {StringAsTerm, RenderStringAsTerm}
+  export org.maraist.planrec.terms.Symbol.
+    {SymbolAsTerm, RenderSymbolAsTerm}
+  export org.maraist.planrec.terms.Char.{CharAsTerm, RenderCharAsTerm}
 }
