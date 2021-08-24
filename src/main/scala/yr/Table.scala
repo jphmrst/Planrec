@@ -25,6 +25,15 @@ class Table[T, H, S](val library: HTNLib[T, H, S])(using TermImpl[T, H, S]) {
   // Commenting out while debugging Rule extension methods
 
   val dfa: HyperedgeDFA[Set[Node[T,H,S]], H] = {
+    val nfa = Table.libToNFA(library)
+    nfa.toDFA
+  }
+}
+
+object Table {
+
+  def libToNFA[T, H, S](library: HTNLib[T, H, S])(using TermImpl[T, H, S]):
+      HyperedgeNDFA[Node[T,H,S], H, ? <: HyperedgeDFA[Set[Node[T,H,S]], H]] = {
     val nfaBuilder = new HashHyperedgeNDFABuilder[Node[T,H,S], H]()
 
     // Queue for all of the items which need to be processed
@@ -57,7 +66,7 @@ class Table[T, H, S](val library: HTNLib[T, H, S])(using TermImpl[T, H, S]) {
         case (prev, item) =>
           item.encodeItemTransition(prev, nfaBuilder, itemsQueue)
 
-    val nfa = nfaBuilder.toNDFA
-    nfa.toDFA
+    nfaBuilder.toNDFA
   }
 }
+

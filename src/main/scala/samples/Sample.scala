@@ -12,6 +12,8 @@ package org.maraist.planrec.samples
 import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
+import org.maraist.planrec.terms.Term.TermImpl
+import org.maraist.planrec.yr.table.Table
 
 trait Sample {
   type Term
@@ -22,6 +24,9 @@ trait Sample {
   def desc: String
   def sequences: Seq[Seq[Term]]
   def essay: String = ""
+  def termImpl: TermImpl[Term, Head, Subst]
+  def nfaWidth: String = "6in"
+  def dfaWidth: String = "7in"
 }
 
 object Sample extends Sampler {
@@ -36,7 +41,7 @@ object Sample extends Sampler {
     dsc: String,
     seq: Seq[Seq[T]],
     txt: String = ""
-  ): Sample = {
+  )(using ti: TermImpl[T, H, S]): Sample = {
     val result = new Sample() {
       type Term = T
       type Head = H
@@ -46,6 +51,7 @@ object Sample extends Sampler {
       override val desc: String = dsc
       override val sequences: Seq[Seq[T]] = seq
       override val essay: String = txt
+      override val termImpl: TermImpl[Term, Head, Subst] = ti
     }
     samplesBank += result
     result
@@ -58,20 +64,36 @@ object Sample extends Sampler {
   }
 
   def addSample(guide: LaTeXdoc, sample: Sample, cleaner: FilesCleaner) = {
+    type T = sample.Term
+    type H = sample.Head
+    type S = sample.Subst
+    val library: HTNLib[T, H, S] = sample.library
+    val tag = sample.name
+
     guide ++= "\\section{"
     if (!sample.desc.equals("")) guide ++= s"${sample.desc} --- "
     guide ++= s"${sample.name}}\n"
     if (!sample.essay.equals("")) guide ++=/ sample.essay
     guide ++= "\\begin{center}\n"
-    sample.library.toLaTeX(guide)
+    library.toLaTeX(guide)
     guide ++= "\\end{center}\n"
     // TODO
+
+    given TermImpl[T, H, S] = sample.termImpl
+    val table = new Table(library)
+    guide ++= "\\subsection{YR}\n"
+    guide ++= "\\subsection*{NFA}\n"
+    val nfa = Table.libToNFA(library)
+    graphable(guide, cleaner, nfa, tag+"NFA", tag+" NFA", sample.nfaWidth)
+    guide ++= "\\subsection*{DFA}\n"
+    graphable(
+      guide, cleaner, table.dfa, tag+"DFA", tag+" DFA", sample.dfaWidth
+    )
   }
 
   @main def writeSamples: Unit = {
     HTNs.load
     val guide = new LaTeXdoc("samples")
-
     guide.addPackage("geometry", "margin=1in")
     guide.addPackage("times")
     guide.addPackage("graphicx")
