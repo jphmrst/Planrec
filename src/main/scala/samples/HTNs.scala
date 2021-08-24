@@ -22,6 +22,8 @@ object HTNs {
   // import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
 
+  def load: Unit = ()
+
   val aa = Act[String, String, Unit]("A", "a")
   val bb = Act[String, String, Unit]("B", "b")
   val cc = Act[String, String, Unit]("C", "c")
