@@ -21,6 +21,7 @@ object Char {
       if unifiable(t1, t2) then Some(()) else None
     def substitute(t: Char, s: Unit): Char = t
 
-  given RenderStringAsTerm: LaTeXRenderer[String] with
-    override def toLaTeX(c: Char, doc: LaTeXdoc) = { doc += c }
+  given RenderCharAsTerm: LaTeXRenderer[Char] with
+    override def toLaTeX(doc: LaTeXdoc, c: Char): Unit =
+      ??? // { doc += c }
 }

@@ -10,6 +10,8 @@
 
 package org.maraist.planrec.samples
 import scala.collection.immutable.{Seq,IndexedSeq}
+import org.maraist.planrec.terms.Term.{
+  RenderCharAsTerm, RenderStringAsTerm}
 
 object HTNs {
   import org.maraist.planrec.rules.{

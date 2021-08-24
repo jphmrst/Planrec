@@ -22,5 +22,5 @@ object String {
     def substitute(t: String, s: Unit): String = t
 
   given RenderStringAsTerm: LaTeXRenderer[String] with
-    override def toLaTeX(s: String, doc: LaTeXdoc) = { doc ++= s }
+    override def toLaTeX(doc: LaTeXdoc, s: String) = { doc ++= s }
 }
