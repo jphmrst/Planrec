@@ -18,56 +18,6 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
 
-
-type NFAbuild[T, H, S] = NDFABuilder[Item.Node[T, H, S], ?, ?, ?, ?]
-
-/** This trait links one type of [[HTNrule]] with the type of item
-  * positions within that rule, and the implementation of item
-  * operations for the rule/position.  It may be that not every rule
-  * form is used with an algorithm based on items, so there is no
-  * mention of items in the rules themselves.
-  *
-  * @tparam T The type of terms used to describe goals, subgoals and
-  * actions in these rules.
-  * @tparam RuleType Type constructor for the plan rules whose items
-  * are implemented here.  The argument to this type constructor must
-  * implement [[TermImpl]].
-  * @tparam PosType Type constructor for the position markers used in
-  * the items implemented here.  The argument to this type constructor
-  * must implement [[TermImpl]].
-  */
-sealed trait RuleItem[
-  T, H, S,
-  RuleType[X, Y, Z] <: HTNrule[X, Y, Z],
-  PosType[X, Y, Z] <: Item[X, Y, Z]
-]
-  (using TermImpl[T, H, S]) {
-
-  /** Build the initial item for the particular rule type.
-    */
-  def initialItem(rule: RuleType[T, H, S]): PosType[T, H, S]
-
-  /** Add the basic NFA elements for this rule to a handle-finding NFA,
-    * and to the queue of items to process.  By default, this method:
-    *
-    *  1. Adds the rule's station to the NFA.
-    *
-    *  1. Adds the rule's initial item, and any other associated
-    *     nodes, to the NFA.
-    *
-    *  1. Adds the rule's initial item to the queue.
-    *
-    * Most implementations of [[RuleItem]] should override this
-    * method, but still call this superclass method at some point.
-    */
-  def queueInitialRuleForms[I >: PosType[T, H, S]](
-    rule: RuleType[T, H, S],
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(I, T)], I)]
-  ): Unit =
-    queue.enqueue((None, initialItem(rule)))
-}
-
 /** An item is the combination of a rule and a particular state of
   * progress through that rule.
   * @tparam T Type of terms for goals and actions in rules and items
@@ -137,7 +87,6 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     nfa: NFAbuild[T, H, S],
     queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
       Unit
-
 }
 
 /** Items associated with [[All]] rules.  Corresponds to the
@@ -308,94 +257,74 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
 }
 
 
-/** This object contains the `given` implementations of [[RuleItem]]
-  * for various rules.
+/** This trait links one type of [[HTNrule]] with the type of item
+  * positions within that rule, and the implementation of item
+  * operations for the rule/position.  It may be that not every rule
+  * form is used with an algorithm based on items, so there is no
+  * mention of items in the rules themselves.
+  *
+  * @tparam T The type of terms used to describe goals, subgoals and
+  * actions in these rules.
+  * @tparam RuleType Type constructor for the plan rules whose items
+  * are implemented here.  The argument to this type constructor must
+  * implement [[TermImpl]].
+  * @tparam PosType Type constructor for the position markers used in
+  * the items implemented here.  The argument to this type constructor
+  * must implement [[TermImpl]].
   */
-object Item {
-  type Node[T, H, S] = Item[T, H, S] | H | Ind[Item[T, H, S], H, S]
+sealed trait RuleItem[
+  T, H, S,
+  RuleType[X, Y, Z] <: HTNrule[X, Y, Z],
+  PosType[X, Y, Z] <: Item[X, Y, Z]
+]
+  (using TermImpl[T, H, S]) {
 
-  given all[T, H, S](using TermImpl[T, H, S]):
-      RuleItem[T, H, S, All, AllItem] with {
+  /** Build the initial item for the particular rule type.
+    */
+  def initialItem(rule: RuleType[T, H, S]): PosType[T, H, S]
 
-    def initialItem(rule: All[T, H, S]): AllItem[T, H, S] = {
-      val getDelayed = Set.newBuilder[Int]
-      for((_,after) <- rule.order) {
-        getDelayed += after
-      }
-
-      val delayed = getDelayed.result()
-      val getReady = Set.newBuilder[Int]
-      for (i <- 0 until rule.subgoals.length) {
-        if (!delayed.contains(i)) {
-          getReady += i
-        }
-      }
-
-      AllItem[T, H, S](rule, getReady.result())
-    }
-
-    override def queueInitialRuleForms[I >: AllItem[T, H, S]](
-      rule: All[T, H, S],
-      nfa: NDFABuilder[Node[T, H, S],?,?,?,?],
-      queue: Queue[(Option[(I, T)], I)]):
-        Unit = {
-      ??? // TODO
-      super.queueInitialRuleForms[I](rule, nfa, queue)
-    }
-  }
-
-  given one[T,H,S](using TermImpl[T,H,S]):
-      RuleItem[T, H, S, One, OneItem] with {
-    def initialItem(rule: One[T, H, S]): OneItem[T, H, S] =
-      OneItem[T, H, S](rule, false)
-
-    override def queueInitialRuleForms[I >: OneItem[T, H, S]](
-      rule: One[T, H, S],
-      nfa: NDFABuilder[Node[T, H, S],?,?,?,?],
-      queue: Queue[(Option[(I, T)], I)]):
-        Unit = {
-      ??? // TODO
-      super.queueInitialRuleForms[I](rule, nfa, queue)
-    }
-  }
-
-  given act[T, H, S](using TermImpl[T, H, S]):
-      RuleItem[T, H, S, Act, ActItem] with {
-    def initialItem(rule: Act[T, H, S]): ActItem[T, H, S] =
-      ActItem[T, H, S](rule, false)
-
-    override def queueInitialRuleForms[I >: ActItem[T, H, S]](
-      rule: Act[T, H, S],
-      nfa: NDFABuilder[Node[T, H, S], ?, ?, ?, ?],
-      queue: Queue[(Option[(I, T)], I)]):
-        Unit = {
-      ??? // TODO
-      super.queueInitialRuleForms[I](rule, nfa, queue)
-    }
-  }
+  /** Add the basic NFA elements for this rule to a handle-finding NFA,
+    * and to the queue of items to process.  By default, this method:
+    *
+    *  1. Adds the rule's station to the NFA.
+    *
+    *  1. Adds the rule's initial item, and any other associated
+    *     nodes, to the NFA.
+    *
+    *  1. Adds the rule's initial item to the queue.
+    *
+    * Most implementations of [[RuleItem]] should override this
+    * method, but still call this superclass method at some point.
+    */
+  def queueInitialRuleForms[I >: PosType[T, H, S]](
+    rule: RuleType[T, H, S],
+    nfa: NFAbuild[T, H, S],
+    queue: Queue[(Option[(I, T)], I)]
+  ): Unit =
+    queue.enqueue((None, initialItem(rule)))
 }
-
-import org.maraist.planrec.yr.table.Item.*
 
 extension [T, H, S](rule: HTNrule[T, H, S])(using termImpl: TermImpl[T,H,S]) {
   def initialItem: Item[T, H, S] =
     rule match {
-      case allRule: All[T, H, S] => Item.all.initialItem(allRule)
-      case oneRule: One[T, H, S] => Item.one.initialItem(oneRule)
-      case actRule: Act[T, H, S] => Item.act.initialItem(actRule)
-    }
+      case allRule: All[T, H, S] => {
+        val getDelayed = Set.newBuilder[Int]
+        for((_,after) <- allRule.order) {
+          getDelayed += after
+        }
 
-  def queueInitialRuleForms(
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])],
-    nfa: NDFABuilder[Node[T, H, S],?,?,?,?]):
-      Unit =
-    rule match {
-      case allRule: All[T, H, S] =>
-        Item.all.queueInitialRuleForms(allRule, nfa, queue)
-      case oneRule: One[T, H, S] =>
-        Item.one.queueInitialRuleForms(oneRule, nfa, queue)
-      case actRule: Act[T, H, S] =>
-        Item.act.queueInitialRuleForms(actRule, nfa, queue)
+        val delayed = getDelayed.result()
+        val getReady = Set.newBuilder[Int]
+        for (i <- 0 until allRule.subgoals.length) {
+          if (!delayed.contains(i)) {
+            getReady += i
+          }
+        }
+
+        AllItem[T, H, S](allRule, getReady.result())
+      }
+      case oneRule: One[T, H, S] => OneItem[T, H, S](oneRule, false)
+      case actRule: Act[T, H, S] => ActItem[T, H, S](actRule, false)
     }
 }
 
