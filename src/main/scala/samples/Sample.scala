@@ -13,7 +13,7 @@ import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
-import org.maraist.planrec.yr.table.Table
+import org.maraist.planrec.yr.table.{HandleFinder,Table}
 
 trait Sample {
   type Term
@@ -83,7 +83,7 @@ object Sample extends Sampler {
     val table = new Table(library)
     guide ++= "\\subsection{YR}\n"
     guide ++= "\\subsection*{NFA}\n"
-    val nfa = Table.libToNFA(library)
+    val nfa = HandleFinder.libToNFA(library)
     graphable(guide, cleaner, nfa, tag+"NFA", tag+" NFA", sample.nfaWidth)
     guide ++= "\\subsection*{DFA}\n"
     graphable(

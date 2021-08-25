@@ -56,37 +56,6 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     * @param trigger The action or subgoal under question.
     */
   def applications(trigger: T): Seq[TriggerHint]
-
-  /** Add the necessary components to an [[NDFABuilder]] for the `next`
-    * item (which may already have been added to the NFA), and for the
-    * transition from the `prev` item to the `next` item.  Additional
-    * items pairs may be pushed to the `queue`, but no pairs should be
-    * read from it.
-    *
-    * @param prev Item from which the `next` item was derived, if any.
-    * @param next The item being added to the NFA.
-    * @param queue Queue of items to subsequently be added to the NFA.
-    */
-  def encodeItemNode(
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit
-
-  /** Add the necessary components to an [[NDFABuilder]] for the `next`
-    * item (which may already have been added to the NFA), and for the
-    * transition from the `prev` item to the `next` item.  Additional
-    * items pairs may be pushed to the `queue`, but no pairs should be
-    * read from it.
-    *
-    * @param prev Item from which the `next` item was derived, if any.
-    * @param next The item being added to the NFA.
-    * @param queue Queue of items to subsequently be added to the NFA.
-    */
-  def encodeItemTransition(
-    prev: Option[(Item[T, H, S], T)],
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit
 }
 
 /** Items associated with [[All]] rules.  Corresponds to the
@@ -146,41 +115,6 @@ case class AllItem[T, H, S](
   }
 
   def triggers: Set[T] = for((trigger, _) <- goalHints) yield trigger
-
-  def encodeItemNode(
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit = {
-
-    // Add the item as a node if it is not already in the NDA.
-    if !(nfa.isState(this)) then nfa.addState(this)
-  }
-
-  def encodeItemTransition(
-    prev: Option[(Item[T, H, S], T)],
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit = {
-
-    val prior = prev match {
-      case None => ()
-      case Some(item, trigger) => ()
-    }
-    // If there is only one ready element, then we can just add a
-    // simple item.  ***BUT*** we need a trigger for the transition
-    // itself.
-
-    // Otherwise if there was only one ready element in the `prev`, or
-    // if there is no `prev`, then we need to add an indirection node
-    // since we now must synchronize two possibly-interleaved
-    // subgoals.
-
-    // Moreover if we have more than one element of the ready set, and
-    // it is also not a subset of the predecessor, then we need to
-    // annotate with concurrent stack top spawning.
-
-    ???
-  }
 }
 
 /** Position of an item in a [[org.maraist.planrec.rules.One One]]
@@ -206,17 +140,6 @@ case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
   def applications(trigger: T): Seq[TriggerHint] = ???
 
   def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
-
-  def encodeItemNode(
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit = ???
-
-  def encodeItemTransition(
-    prev: Option[(Item[T, H, S], T)],
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit = ???
 }
 
 
@@ -243,17 +166,6 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
   def applications(trigger: T): Seq[TriggerHint] = ???
 
   def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
-
-  def encodeItemNode(
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit = ???
-
-  def encodeItemTransition(
-    prev: Option[(Item[T, H, S], T)],
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])]):
-      Unit = ???
 }
 
 
@@ -282,26 +194,6 @@ sealed trait RuleItem[
   /** Build the initial item for the particular rule type.
     */
   def initialItem(rule: RuleType[T, H, S]): PosType[T, H, S]
-
-  /** Add the basic NFA elements for this rule to a handle-finding NFA,
-    * and to the queue of items to process.  By default, this method:
-    *
-    *  1. Adds the rule's station to the NFA.
-    *
-    *  1. Adds the rule's initial item, and any other associated
-    *     nodes, to the NFA.
-    *
-    *  1. Adds the rule's initial item to the queue.
-    *
-    * Most implementations of [[RuleItem]] should override this
-    * method, but still call this superclass method at some point.
-    */
-  def queueInitialRuleForms[I >: PosType[T, H, S]](
-    rule: RuleType[T, H, S],
-    nfa: NFAbuild[T, H, S],
-    queue: Queue[(Option[(I, T)], I)]
-  ): Unit =
-    queue.enqueue((None, initialItem(rule)))
 }
 
 extension [T, H, S](rule: HTNrule[T, H, S])(using termImpl: TermImpl[T,H,S]) {
@@ -332,7 +224,7 @@ object HTN {
   import org.maraist.planrec.terms.Term.*
   export org.maraist.planrec.rules.{All, One, Act}
   export org.maraist.planrec.rules.HTN.HTNrule
+  export org.maraist.planrec.rules.HTNLib
   export org.maraist.planrec.yr.table.initialItem
   export org.maraist.planrec.yr.table.{AllItem, OneItem, ActItem}
-  export org.maraist.planrec.yr.table.Item.{all, one, act}
 }
