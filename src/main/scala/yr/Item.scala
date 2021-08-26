@@ -15,7 +15,7 @@ import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
 import org.maraist.planrec.rules.HTN.*
 import org.maraist.planrec.terms.TermImpl
 import TriggerHint.*
-import org.maraist.planrec.terms.{>?<, >><<}
+import org.maraist.planrec.terms.{>?<, >><<, >+<}
 import scala.compiletime.ops.any
 
 /** An item is the combination of a rule and a particular state of
@@ -45,17 +45,38 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     * Note that Skolemizing, if needed, should be performed *before*
     * calling this method.
     *
+    * @param subst The substitution to be applied to the result.
     * @param trigger The action or subgoal used to advance this item.
     * @param hint Directive for resolving the trigger to a particular
     * subgoal of this item's rule.
     */
-  def apply(trigger: T)(using hint: TriggerHint): Option[Item[T, H, S]]
+  def apply(trigger: T)(using hint: TriggerHint):
+      Option[Item[T, H, S]]
 
   /** Hints which might apply to this trigger, if it is ambiguous within
     * the possible subgoals/actions.
     * @param trigger The action or subgoal under question.
     */
   def applications(trigger: T): Seq[TriggerHint]
+}
+
+/** Helper methods. */
+object Item {
+  import scala.util.control.NonLocalReturns.*
+
+  def findMatchingSubgoal[T, H, S]
+    (trigger: T, subgoals: IndexedSeq[T], hint: TriggerHint)
+    (using impl: TermImpl[T, H, S]):
+      Option[(S, Int)] = hint match {
+      case TriggerMatchIndex(i) => (subgoals(i) >+< trigger).map((_,i))
+      case _ => returning {
+        for(i <- 0 until subgoals.length) {
+          (subgoals(i) >+< trigger).map(
+            (s: S) => throwReturn[Option[(S,Int)]](Some((s,i))))
+        }
+        None
+      }
+  }
 }
 
 /** Items associated with [[All]] rules.  Corresponds to the
@@ -83,29 +104,18 @@ case class AllItem[T, H, S](
   }
   def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint): Option[AllItem[T, H, S]] = {
-    import scala.util.control.NonLocalReturns.*
-    val idx: Option[Int] = hint match {
-      case TriggerMatchIndex(i) => Some(i)
-      case _ => returning {
-        for(i <- 0 until rule.subgoals.length) {
-          if (rule.subgoals(i) >?< trigger) {
-            throwReturn[Option[Int]](Some(i))
-          }
+  def apply(trigger: T)(using hint: TriggerHint):
+      Option[AllItem[T, H, S]] =
+    Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
+      .map(
+        (s, i) => {
+          val derivedRule: All[T, H, S] = rule.apply(s)
+          val sb = Set.newBuilder[Int]
+          for(j <- ready; if i != j) { sb += j }
+          for((before, after) <- rule.order; if before == i) { sb += after }
+          AllItem(derivedRule, sb.result())
         }
-        None
-      }
-    }
-
-    idx.flatMap(rule.subgoals(_) >><< trigger)
-      .map((term) => {
-        val i = idx.get
-        val sb = Set.newBuilder[Int]
-        for(j <- ready; if i != j) { sb += j }
-        for((before, after) <- rule.order; if before == i) { sb += after }
-        AllItem(rule, sb.result())
-      })
-  }
+      )
 
   def applications(trigger: T): Seq[TriggerHint] = {
     val builder = Seq.newBuilder[TriggerHint]
@@ -134,8 +144,10 @@ case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
 
   def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint): Option[OneItem[T, H, S]] =
-    ???
+  def apply(trigger: T)(using hint: TriggerHint):
+      Option[OneItem[T, H, S]] =
+    Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
+      .map(???)
 
   def applications(trigger: T): Seq[TriggerHint] = ???
 
@@ -160,7 +172,8 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
 
   def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint): Option[ActItem[T, H, S]] =
+  def apply(trigger: T)(using hint: TriggerHint):
+      Option[ActItem[T, H, S]] =
     ???
 
   def applications(trigger: T): Seq[TriggerHint] = ???

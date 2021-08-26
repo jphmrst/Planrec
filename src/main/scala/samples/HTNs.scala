@@ -27,8 +27,8 @@ object HTNs {
   val aa = Act[String, String, Unit]("A", "a")
   val bb = Act[String, String, Unit]("B", "b")
   val cc = Act[String, String, Unit]("C", "c")
-  val nn = One[String, String, Unit]("N", Seq("A", "B"), Seq(0.4, 0.6))
-  val pp = One[String, String, Unit]("P", Seq("A", "C"), Seq(0.3, 0.7))
+  val nn = One[String, String, Unit]("N", IndexedSeq("A", "B"), Seq(0.4, 0.6))
+  val pp = One[String, String, Unit]("P", IndexedSeq("A", "C"), Seq(0.3, 0.7))
   val mm = All[String, String, Unit](
     "M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
   val rr = All[String, String, Unit](
@@ -54,7 +54,7 @@ object HTNs {
     "a0",
     HTNLib(
       Set(
-        One('M', Seq('A', 'X'), Seq(0.4, 0.6)),
+        One('M', IndexedSeq('A', 'X'), Seq(0.4, 0.6)),
         All('X', IndexedSeq('A', 'B', 'C'), Array((0,1), (0,2))),
         Act('A', 'a'),
         Act('B', 'b'),
@@ -76,7 +76,7 @@ object HTNs {
     "a1",
     HTNLib(
       Set(
-        One("M", Seq("X", "Y"), Seq(0.4, 0.6)),
+        One("M", IndexedSeq("X", "Y"), Seq(0.4, 0.6)),
         All("X", IndexedSeq("A1", "B"), Array((0,1))),
         All("Y", IndexedSeq("A2", "C"), Array((0,1))),
         Act("A1", "a1"),
@@ -98,7 +98,7 @@ object HTNs {
     HTNLib(
       Set(
         All('M', IndexedSeq('N', 'C'), Array((0,1))),
-        One('N', Seq('A', 'X'), Seq(0.4, 0.6)),
+        One('N', IndexedSeq('A', 'X'), Seq(0.4, 0.6)),
         All('X', IndexedSeq('A', 'B'), Array((0,1))),
         Act('A', 'a'),
         Act('B', 'b'),
@@ -117,7 +117,7 @@ object HTNs {
     "a3",
     HTNLib(
       Set(
-        One('S', Seq('L', 'M', 'N'), Seq(0.2, 0.3, 0.5)),
+        One('S', IndexedSeq('L', 'M', 'N'), Seq(0.2, 0.3, 0.5)),
         FullAll('L', IndexedSeq('A', 'B', 'D')),
         FullAll('M', IndexedSeq('A', 'C', 'D')),
         FullAll('N', IndexedSeq('B', 'C')),
@@ -141,8 +141,8 @@ object HTNs {
     HTNLib(
       Set(
         FullAll('S', IndexedSeq('M', 'N')),
-        One('M', Seq('A', 'C', 'D'), Seq(0.2, 0.3, 0.5)),
-        One('N', Seq('B', 'C'), Seq(0.6, 0.4)),
+        One('M', IndexedSeq('A', 'C', 'D'), Seq(0.2, 0.3, 0.5)),
+        One('N', IndexedSeq('B', 'C'), Seq(0.6, 0.4)),
         Act('A', 'a'),
         Act('B', 'b'),
         Act('C', 'c'),
@@ -215,7 +215,7 @@ object HTNs {
       Set(
         FullAll('M', IndexedSeq('L', 'A')),
         FullAll('N', IndexedSeq('B', 'C')),
-        One('L', Seq('B', 'D'), Seq(0.4, 0.6)),
+        One('L', IndexedSeq('B', 'D'), Seq(0.4, 0.6)),
         Act('A', 'a'),
         Act('B', 'b'),
         Act('C', 'c'),
@@ -237,7 +237,7 @@ object HTNs {
   //   HTNLib(
   //     Set(
   //       FullAll('L', IndexedSeq('A', 'M', 'C')),
-  //       One('M', Seq('N', 'B'), Seq(0.4, 0.6)),
+  //       One('M', IndexedSeq('N', 'B'), Seq(0.4, 0.6)),
   //       All('N', Seq()),
   //       Act('A', 'a'),
   //       Act('B', 'b'),
@@ -426,7 +426,7 @@ object HTNs {
     HTNLib(
       Set(
         UnordAll('M', IndexedSeq('N', 'D')),
-        One('N', Seq('P', 'Q'), Seq(0.4, 0.6)),
+        One('N', IndexedSeq('P', 'Q'), Seq(0.4, 0.6)),
         FullAll('P', IndexedSeq('A')),
         FullAll('Q', IndexedSeq('A', 'B', 'C')),
         Act('A', 'a'),
@@ -549,7 +549,7 @@ object HTNs {
     "c0",
     HTNLib(
       Set(
-        One('S', Seq('F', 'G'), Seq(0.4, 0.6)),
+        One('S', IndexedSeq('F', 'G'), Seq(0.4, 0.6)),
         FullAll('F', IndexedSeq('C', 'B')),
         UnordAll('G', IndexedSeq('C', 'D')),
         Act('B', 'b'),
@@ -596,7 +596,7 @@ object HTNs {
     HTNLib(
       Set(
         FullAll('L', IndexedSeq('D', 'P')),
-        One('P', Seq('Q', 'S'), Seq(0.4, 0.6)),
+        One('P', IndexedSeq('Q', 'S'), Seq(0.4, 0.6)),
         FullAll('Q', IndexedSeq('A', 'D')),
         UnordAll('S', IndexedSeq('M', 'N')),
         FullAll('M', IndexedSeq('A', 'B')),
@@ -641,7 +641,7 @@ object HTNs {
     "c4",
     HTNLib(
       Set(
-        One('P', Seq('Q', 'S'), Seq(0.4, 0.6)),
+        One('P', IndexedSeq('Q', 'S'), Seq(0.4, 0.6)),
         FullAll('Q', IndexedSeq('A', 'D')),
         UnordAll('S', IndexedSeq('M', 'N')),
         FullAll('M', IndexedSeq('A', 'B')),
@@ -666,7 +666,7 @@ object HTNs {
     HTNLib(
       Set(
         UnordAll('X', IndexedSeq('D', 'Y')),
-        One('Y', Seq('Z', 'K', 'F'), Seq(0.2, 0.3, 0.5)), // Dotty crash if 3rd arg missing
+        One('Y', IndexedSeq('Z', 'K', 'F'), Seq(0.2, 0.3, 0.5)), // Dotty crash if 3rd arg missing
         UnordAll('Z', IndexedSeq('J', 'C')),
         FullAll('K', IndexedSeq('A', 'B')),
         UnordAll('F', IndexedSeq('A', 'B', 'D')),
@@ -691,7 +691,7 @@ object HTNs {
     "c6",
     HTNLib(
       Set(
-        One('S', Seq('L', 'M', 'N'), Seq(0.2, 0.3, 0.5)),
+        One('S', IndexedSeq('L', 'M', 'N'), Seq(0.2, 0.3, 0.5)),
         FullAll('L', IndexedSeq('A', 'B')),
         FullAll('M', IndexedSeq('C', 'D')),
         UnordAll('N', IndexedSeq('F', 'G')),
@@ -716,7 +716,7 @@ object HTNs {
     HTNLib(
       Set(
         FullAll('M', IndexedSeq('N', 'D')),
-        One('N', Seq('P', 'Q'), Seq(0.4, 0.6)),
+        One('N', IndexedSeq('P', 'Q'), Seq(0.4, 0.6)),
         UnordAll('P', IndexedSeq('A')),
         UnordAll('Q', IndexedSeq('A', 'B', 'C')),
         Act('A', 'a'),
@@ -739,7 +739,7 @@ object HTNs {
     HTNLib(
       Set(
         UnordAll('X', IndexedSeq('C', 'Y')),
-        One('Y', Seq('Z', 'F'), Seq(0.4, 0.6)),
+        One('Y', IndexedSeq('Z', 'F'), Seq(0.4, 0.6)),
         FullAll('Z', IndexedSeq('B', 'A')),
         UnordAll('F', IndexedSeq('A', 'B')),
         Act('A', 'a'),
@@ -827,7 +827,7 @@ object HTNs {
     "cp3",
     HTNLib(
       Set(
-        One('M', Seq('P', 'Q'), Seq(0.4, 0.6)),
+        One('M', IndexedSeq('P', 'Q'), Seq(0.4, 0.6)),
         All('N', IndexedSeq('A', 'B', 'C'), Array((0,1), (0,2))),
         FullAll('P', IndexedSeq('A', 'D')),
         UnordAll('Q', IndexedSeq('B', 'C')),

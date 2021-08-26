@@ -124,7 +124,8 @@ object UnordAll {
   * This sequence must be of the same length as the sequence of
   * subgoals.
   */
-case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Double])
+case class One[T, H, S]
+  (val goal: T, val subgoals: IndexedSeq[T], subgoalProbs: Seq[Double])
   (using TermImpl[T, H, S])(using termRender: LaTeXRenderer[T])
     extends RuleForm[T, H, S] {
 
