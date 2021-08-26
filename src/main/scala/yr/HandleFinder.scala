@@ -25,25 +25,25 @@ case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
-type HandleFinder[T, H, S] = EdgeAnnotatedDFA[Set[Node[T, H, S]], T, Set[Unit]]
+type HandleFinder[T, H, S] = EdgeAnnotatedDFA[Set[Node[T, H, S]], H, Set[Unit]]
 
 type NondetHandleFinder[T, H, S] =
   EdgeAnnotatedNDFA[
     Node[T, H, S],
-    T,
+    H,
     Unit,
     Set[Unit],
     ? <: HandleFinder[T, H, S]
   ]
 type NondetHandleFinderBuilder[T, H, S] =
   NDFAEdgeAnnotationsBuilder[
-    Node[T, H, S], T,
+    Node[T, H, S], H,
     Unit, Set[Unit],
     ?, NondetHandleFinder[T, H, S],
     ?
   ]
 type NondetHandleFinderBuilderConcrete[T, H, S] =
-  HashEdgeAnnotatedNDFABuilder[Node[T, H, S], T, Set[Unit], Unit]
+  HashEdgeAnnotatedNDFABuilder[Node[T, H, S], H, Set[Unit], Unit]
 
 extension [T, H, S](rule: HTNrule[T, H, S])(using termImpl: TermImpl[T,H,S]) {
   def queueInitialRuleForms(
@@ -52,10 +52,13 @@ extension [T, H, S](rule: HTNrule[T, H, S])(using termImpl: TermImpl[T,H,S]) {
       Unit =
     rule match {
       case allRule: All[T, H, S] => {
+        ???
       }
       case oneRule: One[T, H, S] => {
+        ???
       }
       case actRule: Act[T, H, S] => {
+        ???
       }
     }
 }
@@ -117,6 +120,8 @@ object HandleFinder {
     case allItem @ (AllItem(rule, ready)) => {
       // Add the item as a node if it is not already in the NDA.
       if !(nfa.isState(allItem)) then nfa.addState(allItem)
+
+      ???
     }
 
     case OneItem(rule, isFinal) => {

@@ -80,7 +80,7 @@ object Sample extends Sampler {
     // TODO
 
     given TermImpl[T, H, S] = sample.termImpl
-    val table = new Table(library)
+    val table = Table(library)
     guide ++= "\\subsection{YR}\n"
     guide ++= "\\subsection*{NFA}\n"
     val nfa = HandleFinder.libToNFA(library)

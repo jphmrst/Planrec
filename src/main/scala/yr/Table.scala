@@ -17,15 +17,12 @@ import org.maraist.planrec.rules.HTN.*
 import org.maraist.fa.hyperedges.{HyperedgeNDFA,HyperedgeDFA}
 import org.maraist.fa.hyperedges.impl.HashHyperedgeNDFABuilder
 
-class Table[T, H, S](val library: HTNLib[T, H, S])(using TermImpl[T, H, S]) {
-
-  // Commenting out while debugging Rule extension methods
-
-  val dfa = {
-    val nfa = HandleFinder.libToNFA(library)
-    nfa.toDFA
-  }
+class Table[T, H, S](val dfa: HandleFinder[T, H, S])(using TermImpl[T, H, S]) {
 }
 
+object Table {
+  def apply[T, H, S](library: HTNLib[T, H, S])(using TermImpl[T, H, S]) =
+    new Table(???)
+}
 
 
