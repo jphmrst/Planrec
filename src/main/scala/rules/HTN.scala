@@ -18,6 +18,7 @@ trait RuleForm[T, H, S](using TermImpl[T,H,S])
     extends LaTeXRenderable {
   def goal: T
   def unblockedSubgoals: Set[T]
+  def apply(subst: S): RuleForm[T, H, S]
 }
 
 /** An "and-rule", indicating that a goal can be fulfilled by meeting
@@ -40,6 +41,9 @@ case class All[T, H, S](
     then throw IllegalArgumentException
                ("Ordered indices must refer to subgoal index")
   }
+
+  def apply(s: S): All[T, H, S] =
+    All(goal.subst(s), subgoals.map(_.subst(s)), order)
 
   def unblockedSubgoals: Set[T] = unblockedSubgoalIndices.map(subgoals(_))
 
@@ -133,6 +137,9 @@ case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Dou
     */
   val probs: Seq[Double] = normalizeSeq(subgoalProbs)
 
+  def apply(s: S): One[T, H, S] =
+    One(goal.subst(s), subgoals.map(_.subst(s)), subgoalProbs)
+
   def unblockedSubgoals: Set[T] = Set.from(subgoals)
 
   def toLaTeX(doc: LaTeXdoc):
@@ -155,8 +162,9 @@ case class Act[T, H, S](val goal: T, val action: T)
     extends RuleForm[T, H, S] {
   def unblockedSubgoals: Set[T] = Set.empty
 
-  def toLaTeX(doc: LaTeXdoc):
-      Unit = {
+  def apply(s: S): Act[T, H, S] = Act(goal.subst(s), action.subst(s))
+
+  def toLaTeX(doc: LaTeXdoc): Unit = {
     termRender.toLaTeX(doc, goal)
     doc ++= " & ::= "
     termRender.toLaTeX(doc, action)
