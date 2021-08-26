@@ -18,6 +18,10 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<, >+<}
 import scala.compiletime.ops.any
 
+// NEXT TODO --- to build the table we use goal heads H, not goal
+// terms T.  Need to replace T with H in all of the triggers and
+// similar.
+
 /** An item is the combination of a rule and a particular state of
   * progress through that rule.
   * @tparam T Type of terms for goals and actions in rules and items
