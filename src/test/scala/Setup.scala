@@ -23,8 +23,11 @@ object RuleItemSamples1 {
   val cc = Act[String, String, Unit]("C", "c")
   val nn = One[String, String, Unit]("N", IndexedSeq("A", "B"), Seq(0.4, 0.6))
   val pp = One[String, String, Unit]("P", IndexedSeq("A", "C"), Seq(0.3, 0.7))
+  val qq = One[String, String, Unit]("Q", IndexedSeq("B", "C"), Seq(0.3, 0.7))
   val mm = All[String, String, Unit]("M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
   val rr = All[String, String, Unit]("R", IndexedSeq("N", "P"), Array[(Int,Int)]())
+  val ss = All[String, String, Unit]
+              ("S", IndexedSeq("N", "P", "Q"), Array[(Int,Int)]((1,2)))
 
   val rInitial = AllItem(rr, Set(0, 1))
   val rThenN = AllItem(rr, Set(1))
@@ -37,6 +40,13 @@ object RuleItemSamples1 {
 
   val aBefore = ActItem(aa, false)
   val aAfter = ActItem(aa, true)
+
+  val sInitial = AllItem(ss, Set(0,1))
+  val sAfterN = AllItem(ss, Set(1))
+  val sAfterP = AllItem(ss, Set(0,2))
+  val sAfterNP = AllItem(ss, Set(2))
+  val sAfterPS = AllItem(ss, Set(0))
+  val sComplete = AllItem(ss, Set())
 
   /**
     * Was `'a0` in the old Lisp `yr/specs.lisp` file.
