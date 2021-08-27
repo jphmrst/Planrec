@@ -11,7 +11,8 @@
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
 import org.maraist.fa.NDFABuilder
-import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
+import org.maraist.planrec.rules.
+  {All, One, Act, TriggerHint, TriggerMatchIndex, NoHint}
 import org.maraist.planrec.rules.HTN.*
 import org.maraist.planrec.terms.TermImpl
 import org.maraist.planrec.terms.Term.termHead
@@ -32,14 +33,11 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
   /** Returns `true` if this item is a final item for its rule. */
   def isFinal: Boolean
 
-  /** The triggers corresponding to subgoals for this item. */
-  def goalHints: Set[(H, TriggerHint)]
-
   /** The triggers corresponding to actions for this item. */
   def actionHints: Set[(H, TriggerHint)]
 
   /** All triggers for this item. */
-  def triggers: Set[H]
+  def triggers: Set[H] = for((trigger, _) <- actionHints) yield trigger
 
   /** Result of advancing this item for the given trigger.
     *
@@ -91,23 +89,19 @@ object Item {
   * @param ready The frontier of subgoals which are neither satisfied
   * nor blocked in this item.
   */
-case class AllItem[T, H, S](
-  val rule: All[T, H, S],
-  val ready: Set[Int]
-)(
-  using TermImpl[T, H, S]
-) extends Item[T, H, S] {
+case class AllItem[T, H, S](val rule: All[T, H, S], val ready: Set[Int])
+  (using TermImpl[T, H, S])
+    extends Item[T, H, S] {
 
   /** In [[All]] rules' items, the item is in the final state when the
     * frontier set is empty. */
   def isFinal: Boolean = ready.isEmpty
 
-  def goalHints: Set[(H, TriggerHint)] = {
+  def actionHints: Set[(H, TriggerHint)] = {
     val res = Set.newBuilder[(H, TriggerHint)]
     for(i <- ready) res += ((rule.subgoals(i).termHead, TriggerMatchIndex(i)))
     res.result()
   }
-  def actionHints: Set[(H, TriggerHint)] = Set.empty[(H, TriggerHint)]
 
   def apply(trigger: H)(using hint: TriggerHint):
       Option[AllItem[T, H, S]] =
@@ -128,35 +122,40 @@ case class AllItem[T, H, S](
       do builder += TriggerMatchIndex(i)
     builder.result()
   }
-
-  def triggers: Set[H] = for((trigger, _) <- goalHints) yield trigger
 }
 
 /** Position of an item in a [[org.maraist.planrec.rules.One One]]
   * rule.
   */
 case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
-  (using TermImpl[T, H, S]) extends Item[T, H, S] {
+  (using impl: TermImpl[T, H, S]) extends Item[T, H, S] {
 
   override def equals(a: Any): Boolean = a match {
     case that: OneItem[?,?,?] => rule == that.rule && isFinal == that.isFinal
     case _ => false
   }
+
   override def hashCode(): Int =
     if isFinal then 2 * rule.hashCode() else rule.hashCode()
 
-  def goalHints: Set[(H, TriggerHint)] = ???
+  def actionHints: Set[(H, TriggerHint)] = {
+    val res = Set.newBuilder[(H, TriggerHint)]
+    for(i <- 0 until rule.subgoals.size)
+      res += ((rule.subgoals(i).termHead, TriggerMatchIndex(i)))
+    res.result()
+  }
 
-  def actionHints: Set[(H, TriggerHint)] = Set.empty[(H, TriggerHint)]
+  def apply(trigger: H)(using hint: TriggerHint): Option[OneItem[T, H, S]] =
+    if isFinal then None
+    else
+      Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
+        .map((x) => OneItem(rule, true))
 
-  def apply(trigger: H)(using hint: TriggerHint):
-      Option[OneItem[T, H, S]] =
-    Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
-      .map(???)
-
-  def applications(trigger: H): Seq[TriggerHint] = ???
-
-  def triggers: Set[H] = ??? // Set.from(goalTriggers(rule, pos))
+  def applications(trigger: H): Seq[TriggerHint] =
+    for(
+      i <- 0 until rule.subgoals.size;
+      if rule.subgoals(i).termHead.equals(trigger)
+    ) yield TriggerMatchIndex(i)
 }
 
 
@@ -173,17 +172,19 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
   override def hashCode(): Int =
     if isFinal then 2 * rule.hashCode() else rule.hashCode()
 
-  def goalHints: Set[(H, TriggerHint)] = ???
-
-  def actionHints: Set[(H, TriggerHint)] = Set.empty[(H, TriggerHint)]
+  def actionHints: Set[(H, TriggerHint)] =
+    if isFinal then Set.empty[(H, TriggerHint)]
+    else Set[(H, TriggerHint)]((rule.action.termHead, NoHint()))
 
   def apply(trigger: H)(using hint: TriggerHint):
       Option[ActItem[T, H, S]] =
-    ???
+    if !isFinal && rule.action.termHead.equals(trigger) then
+      Some(ActItem(rule,true))
+    else None
 
-  def applications(trigger: H): Seq[TriggerHint] = ???
-
-  def triggers: Set[H] = ??? // Set.from(goalTriggers(rule, pos))
+  def applications(trigger: H): Seq[TriggerHint] =
+    if isFinal || !rule.action.termHead.equals(trigger) then Seq()
+    else Seq(NoHint())
 }
 
 

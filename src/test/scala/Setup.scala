@@ -16,14 +16,13 @@ import org.maraist.planrec.terms.Term.
 object RuleItemSamples1 {
   import org.maraist.planrec.rules.{One,All,Act,HTNLib}
   import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
-  import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
 
   val aa = Act[String, String, Unit]("A", "a")
   val bb = Act[String, String, Unit]("B", "b")
   val cc = Act[String, String, Unit]("C", "c")
-  val nn = One[String, String, Unit]("N", Seq("A", "B"), Seq(0.4, 0.6))
-  val pp = One[String, String, Unit]("P", Seq("A", "C"), Seq(0.3, 0.7))
+  val nn = One[String, String, Unit]("N", IndexedSeq("A", "B"), Seq(0.4, 0.6))
+  val pp = One[String, String, Unit]("P", IndexedSeq("A", "C"), Seq(0.3, 0.7))
   val mm = All[String, String, Unit]("M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
   val rr = All[String, String, Unit]("R", IndexedSeq("N", "P"), Array[(Int,Int)]())
 
@@ -44,7 +43,7 @@ object RuleItemSamples1 {
     */
   val lib0 = HTNLib(
     Set(
-      One('M', Seq('A', 'X'), Seq(0.5, 0.6)),
+      One('M', IndexedSeq('A', 'X'), Seq(0.5, 0.6)),
       All('X', IndexedSeq('A', 'B', 'C'),
         Array((0,1), (0,2))),
       Act('A', 'a'),
