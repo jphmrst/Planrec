@@ -14,13 +14,10 @@ import org.maraist.fa.NDFABuilder
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
 import org.maraist.planrec.rules.HTN.*
 import org.maraist.planrec.terms.TermImpl
+import org.maraist.planrec.terms.Term.termHead
 import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<, >+<}
 import scala.compiletime.ops.any
-
-// NEXT TODO --- to build the table we use goal heads H, not goal
-// terms T.  Need to replace T with H in all of the triggers and
-// similar.
 
 /** An item is the combination of a rule and a particular state of
   * progress through that rule.
@@ -36,13 +33,13 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
   def isFinal: Boolean
 
   /** The triggers corresponding to subgoals for this item. */
-  def goalHints: Set[(T, TriggerHint)]
+  def goalHints: Set[(H, TriggerHint)]
 
   /** The triggers corresponding to actions for this item. */
-  def actionHints: Set[(T, TriggerHint)]
+  def actionHints: Set[(H, TriggerHint)]
 
   /** All triggers for this item. */
-  def triggers: Set[T]
+  def triggers: Set[H]
 
   /** Result of advancing this item for the given trigger.
     *
@@ -54,14 +51,14 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     * @param hint Directive for resolving the trigger to a particular
     * subgoal of this item's rule.
     */
-  def apply(trigger: T)(using hint: TriggerHint):
+  def apply(trigger: H)(using hint: TriggerHint):
       Option[Item[T, H, S]]
 
   /** Hints which might apply to this trigger, if it is ambiguous within
     * the possible subgoals/actions.
     * @param trigger The action or subgoal under question.
     */
-  def applications(trigger: T): Seq[TriggerHint]
+  def applications(trigger: H): Seq[TriggerHint]
 }
 
 /** Helper methods. */
@@ -69,17 +66,21 @@ object Item {
   import scala.util.control.NonLocalReturns.*
 
   def findMatchingSubgoal[T, H, S]
-    (trigger: T, subgoals: IndexedSeq[T], hint: TriggerHint)
+    (trigger: H, subgoals: IndexedSeq[T], hint: TriggerHint)
     (using impl: TermImpl[T, H, S]):
-      Option[(S, Int)] = hint match {
-      case TriggerMatchIndex(i) => (subgoals(i) >+< trigger).map((_,i))
-      case _ => returning {
-        for(i <- 0 until subgoals.length) {
-          (subgoals(i) >+< trigger).map(
-            (s: S) => throwReturn[Option[(S,Int)]](Some((s,i))))
+      Option[Int] = hint match {
+    case TriggerMatchIndex(i) => subgoals(i).termHead.equals(trigger) match {
+      case true => Some(i)
+      case false => None
+    }
+    case _ => returning {
+      for(i <- 0 until subgoals.length) {
+        if (subgoals(i).termHead.equals(trigger)) {
+          throwReturn[Option[Int]](Some(i))
         }
-        None
       }
+      None
+    }
   }
 }
 
@@ -101,34 +102,34 @@ case class AllItem[T, H, S](
     * frontier set is empty. */
   def isFinal: Boolean = ready.isEmpty
 
-  def goalHints: Set[(T, TriggerHint)] = {
-    val res = Set.newBuilder[(T, TriggerHint)]
-    for(i <- ready) res += ((rule.subgoals(i), TriggerMatchIndex(i)))
+  def goalHints: Set[(H, TriggerHint)] = {
+    val res = Set.newBuilder[(H, TriggerHint)]
+    for(i <- ready) res += ((rule.subgoals(i).termHead, TriggerMatchIndex(i)))
     res.result()
   }
-  def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
+  def actionHints: Set[(H, TriggerHint)] = Set.empty[(H, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint):
+  def apply(trigger: H)(using hint: TriggerHint):
       Option[AllItem[T, H, S]] =
     Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
       .map(
-        (s, i) => {
-          val derivedRule: All[T, H, S] = rule.apply(s)
+        (i) => {
           val sb = Set.newBuilder[Int]
           for(j <- ready; if i != j) { sb += j }
           for((before, after) <- rule.order; if before == i) { sb += after }
-          AllItem(derivedRule, sb.result())
+          AllItem(rule, sb.result())
         }
       )
 
-  def applications(trigger: T): Seq[TriggerHint] = {
+  def applications(trigger: H): Seq[TriggerHint] = {
     val builder = Seq.newBuilder[TriggerHint]
-    for i <- 0 until rule.subgoals.length if rule.subgoals(i) >?< trigger
+    for i <- 0 until rule.subgoals.length
+        if rule.subgoals(i).termHead.equals(trigger)
       do builder += TriggerMatchIndex(i)
     builder.result()
   }
 
-  def triggers: Set[T] = for((trigger, _) <- goalHints) yield trigger
+  def triggers: Set[H] = for((trigger, _) <- goalHints) yield trigger
 }
 
 /** Position of an item in a [[org.maraist.planrec.rules.One One]]
@@ -144,18 +145,18 @@ case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
   override def hashCode(): Int =
     if isFinal then 2 * rule.hashCode() else rule.hashCode()
 
-  def goalHints: Set[(T, TriggerHint)] = ???
+  def goalHints: Set[(H, TriggerHint)] = ???
 
-  def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
+  def actionHints: Set[(H, TriggerHint)] = Set.empty[(H, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint):
+  def apply(trigger: H)(using hint: TriggerHint):
       Option[OneItem[T, H, S]] =
     Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
       .map(???)
 
-  def applications(trigger: T): Seq[TriggerHint] = ???
+  def applications(trigger: H): Seq[TriggerHint] = ???
 
-  def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
+  def triggers: Set[H] = ??? // Set.from(goalTriggers(rule, pos))
 }
 
 
@@ -172,17 +173,17 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
   override def hashCode(): Int =
     if isFinal then 2 * rule.hashCode() else rule.hashCode()
 
-  def goalHints: Set[(T, TriggerHint)] = ???
+  def goalHints: Set[(H, TriggerHint)] = ???
 
-  def actionHints: Set[(T, TriggerHint)] = Set.empty[(T, TriggerHint)]
+  def actionHints: Set[(H, TriggerHint)] = Set.empty[(H, TriggerHint)]
 
-  def apply(trigger: T)(using hint: TriggerHint):
+  def apply(trigger: H)(using hint: TriggerHint):
       Option[ActItem[T, H, S]] =
     ???
 
-  def applications(trigger: T): Seq[TriggerHint] = ???
+  def applications(trigger: H): Seq[TriggerHint] = ???
 
-  def triggers: Set[T] = ??? // Set.from(goalTriggers(rule, pos))
+  def triggers: Set[H] = ??? // Set.from(goalTriggers(rule, pos))
 }
 
 
