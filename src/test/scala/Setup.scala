@@ -29,14 +29,15 @@ object RuleItemSamples1 {
   val ss = All[String, String, Unit]
               ("S", IndexedSeq("N", "P", "Q"), Array[(Int,Int)]((1,2)))
 
+  val nInitial = OneItem(nn, false)
+  val nComplete = OneItem(nn, true)
+
   val rInitial = AllItem(rr, Set(0, 1))
   val rThenN = AllItem(rr, Set(1))
   val rThenP = AllItem(rr, Set(0))
   val rComplete = AllItem(rr, Set())
 
   val mInitial = AllItem(mm, Set(0))
-
-  val nInitial = OneItem(nn, false)
 
   val aBefore = ActItem(aa, false)
   val aAfter = ActItem(aa, true)
