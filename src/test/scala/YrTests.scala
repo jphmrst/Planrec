@@ -54,10 +54,11 @@ class YrTermsRules extends AnyFlatSpec with Matchers {
       val ssAfterN = ssInit("N")
       (ssAfterN.get) `should` be (sAfterN)
 
-      val ssAfterNP = ssAfterN.get("P")
-      (ssAfterNP.get) `should` be (sAfterNP)
+      val ssAfterNPopt = ssAfterN.get("P")
+      val ssAfterNP = ssAfterNPopt.get
+      (ssAfterNP) `should` be (sAfterNP)
 
-      val ssAfterNPS = ssAfterNP.get("S")
+      val ssAfterNPS = ssAfterNP("Q")
       (ssAfterNPS.get) `should` be (sComplete)
 
       val ssAfterP = ssInit("P")
@@ -66,10 +67,10 @@ class YrTermsRules extends AnyFlatSpec with Matchers {
       val ssAfterPN = ssAfterP.get("N")
       (ssAfterPN.get) `should` be (sAfterNP)
 
-      val ssAfterPNS = ssAfterPN.get("S")
+      val ssAfterPNS = ssAfterPN.get("Q")
       (ssAfterPNS.get) `should` be (sComplete)
 
-      val ssAfterPS = ssAfterP.get("S")
+      val ssAfterPS = ssAfterP.get("Q")
       (ssAfterPS.get) `should` be (sAfterPS)
 
       val ssAfterPSN = ssAfterPS.get("N")
