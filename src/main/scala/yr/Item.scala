@@ -27,7 +27,7 @@ import scala.compiletime.ops.any
   */
 sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
 
-  /** HTN [[HTNrule rule]] associated with this item. */
+  /** HTN [[org.maraist.planrec.rules.HTN.HTNrule rule]] associated with this item. */
   def rule: HTNrule[T, H, S]
 
   /** Returns `true` if this item is a final item for its rule. */
@@ -42,7 +42,7 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
   /** Result of advancing this item for the given trigger.
     *
     * Note that Skolemizing, if needed, should be performed *before*
-    * calling this method.
+g    * calling this method.
     *
     * @param subst The substitution to be applied to the result.
     * @param trigger The action or subgoal used to advance this item.
@@ -82,8 +82,8 @@ object Item {
   }
 }
 
-/** Items associated with [[All]] rules.  Corresponds to the
-  * [[Item.all]] instance of [[RuleItem]].
+/** Items associated with [[org.maraist.planrec.rules.All]] rules.
+  * Corresponds to the [[Item.all]] instance of [[RuleItem]].
   *
   * @param rule Rule associated a particular item instance
   * @param ready The frontier of subgoals which are neither satisfied
@@ -93,8 +93,8 @@ case class AllItem[T, H, S](val rule: All[T, H, S], val ready: Set[Int])
   (using TermImpl[T, H, S])
     extends Item[T, H, S] {
 
-  /** In [[All]] rules' items, the item is in the final state when the
-    * frontier set is empty. */
+  /** In [[org.maraist.planrec.rules.All]] rules' items, the item is in
+    * the final state when the frontier set is empty. */
   def isFinal: Boolean = ready.isEmpty
 
   def actionHints: Set[(H, TriggerHint)] = {
@@ -188,7 +188,8 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
 }
 
 
-/** This trait links one type of [[HTNrule]] with the type of item
+/** This trait links one type of
+  * [[org.maraist.planrec.rules.HTN.HTNrule]] with the type of item
   * positions within that rule, and the implementation of item
   * operations for the rule/position.  It may be that not every rule
   * form is used with an algorithm based on items, so there is no

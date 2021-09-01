@@ -11,7 +11,7 @@
 package org.maraist.planrec.rules
 
 /** Provides a hint to the
-  * [[org.maraist.planrec.rules.Item#apply Item.apply]]
+  * [[org.maraist.planrec.yr.table.Item#apply Item.apply]]
   * method.
   *
   * There may be ambiguity as to how a trigger should be applied to
@@ -25,11 +25,11 @@ package org.maraist.planrec.rules
   * as a default hint.
   */
 trait TriggerHint
-/** Hint that the [[org.maraist.planrec.rules.Item#apply Item.apply]]
+/** Hint that the [[org.maraist.planrec.yr.table.Item#apply Item.apply]]
   * method should take the first match it finds.
   */
 case class FirstTriggerMatch() extends TriggerHint
-/** Hint that the [[org.maraist.planrec.rules.Item#apply Item.apply]]
+/** Hint that the [[org.maraist.planrec.yr.table.Item#apply Item.apply]]
   * method should use the match corresponding to a particular index in
   * the rule/item.
   */

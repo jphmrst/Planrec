@@ -15,11 +15,11 @@ package org.maraist.planrec
   *
   * To add a new rule form:
   *
-  *  1. Add a new class extending [[org.maraist.planrec.rules.RuleForm
-  *     RuleForm]] to implement the rule itself.
+  *  1. Add a new class extending
+  *     [[org.maraist.planrec.rules.RuleForm RuleForm]]
+  *     to implement the rule itself.
   *
-  *  2. Add a new class extending
-  *     [[org.maraist.planrec.rules.RulePosition RulePosition]] to
+  *  2. Add a new class extending  RulePosition to
   *     describe an item position within the new rule.
   *
   *  3. In a `given` declaration, add an
