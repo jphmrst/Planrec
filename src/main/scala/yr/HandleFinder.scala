@@ -45,24 +45,6 @@ type NondetHandleFinderBuilder[T, H, S] =
 type NondetHandleFinderBuilderConcrete[T, H, S] =
   HashEdgeAnnotatedNDFABuilder[Node[T, H, S], H, Set[Unit], Unit]
 
-extension [T, H, S](rule: HTNrule[T, H, S])(using termImpl: TermImpl[T,H,S]) {
-  def queueInitialRuleForms(
-    queue: Queue[(Option[(Item[T, H, S], T)], Item[T, H, S])],
-    nfa: NondetHandleFinderBuilder[T, H, S]):
-      Unit =
-    rule match {
-      case allRule: All[T, H, S] => {
-        ???
-      }
-      case oneRule: One[T, H, S] => {
-        ???
-      }
-      case actRule: Act[T, H, S] => {
-        ???
-      }
-    }
-}
-
 object HandleFinder {
   import org.maraist.planrec.rules.HTNLib
 
