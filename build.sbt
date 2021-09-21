@@ -2,7 +2,7 @@
 name := "Planrec JM"
 organization := "org.maraist"
 version := "0.1.0"
-scalaVersion := "3.0.2-RC1"
+scalaVersion := "3.0.2"
 
 unmanagedSources / excludeFilter := ".#*"
 Global / excludeLintKeys ++= Set(scalacOptions)
