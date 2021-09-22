@@ -112,7 +112,7 @@ object HandleFinder {
             case i: AllItem[T, H, S] => {
               val isMulti = (i.actionHints.size > 1)
 
-              // TODO If multi, then add annotations to epsilon
+              // TODO If multi, then add annotations to the epsilon
               // transition for the subgoals.
               ???
 
