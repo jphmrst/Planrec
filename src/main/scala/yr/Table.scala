@@ -22,7 +22,5 @@ class Table[T, H, S](val dfa: HandleFinder[T, H, S])(using TermImpl[T, H, S]) {
 
 object Table {
   def apply[T, H, S](library: HTNLib[T, H, S])(using TermImpl[T, H, S]) =
-    new Table(???)
+    new Table(HandleFinder.libToNFA(library).toDFA)
 }
-
-
