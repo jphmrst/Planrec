@@ -23,7 +23,7 @@ import scala.compiletime.ops.any
 
 case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 
-type Annotation[T, H, S] = List[H]
+case class NfaAnnotation[T, H, S](indirects: List[H])
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
@@ -31,22 +31,22 @@ type HandleFinder[T, H, S] =
   EdgeAnnotatedDFA[
     Set[Node[T, H, S]],
     H,
-    Set[Annotation[T, H, S]]
+    Set[NfaAnnotation[T, H, S]]
   ]
 
 type NondetHandleFinder[T, H, S] =
   EdgeAnnotatedNDFA[
     Node[T, H, S],
     H,
-    Annotation[T, H, S],
-    Set[Annotation[T, H, S]],
+    NfaAnnotation[T, H, S],
+    Set[NfaAnnotation[T, H, S]],
     ? <: HandleFinder[T, H, S]
   ]
 type NondetHandleFinderBuilder[T, H, S] =
   NDFAEdgeAnnotationsBuilder[
     Node[T, H, S], H,
-    Annotation[T, H, S],
-    Set[Annotation[T, H, S]],
+    NfaAnnotation[T, H, S],
+    Set[NfaAnnotation[T, H, S]],
     ?,
     NondetHandleFinder[T, H, S],
     ?
@@ -55,8 +55,8 @@ type NondetHandleFinderBuilderConcrete[T, H, S] =
   HashEdgeAnnotatedNDFABuilder[
     Node[T, H, S],
     H,
-    Set[Annotation[T, H, S]],
-    Annotation[T, H, S]
+    Set[NfaAnnotation[T, H, S]],
+    NfaAnnotation[T, H, S]
   ]
 
 type ItemsQueue[T, H, S] =
@@ -112,10 +112,15 @@ object HandleFinder {
             case i: AllItem[T, H, S] => {
               val isMulti = (i.actionHints.size > 1)
 
-              // TODO If multi, then add annotations to the epsilon
+              // If multi, then add annotations to the epsilon
               // transition for the subgoals.
-              ???
+              if isMulti then
+                nfaBuilder.setEAnnotation(
+                  ruleGoalHead, initial, NfaAnnotation(List.from(i.triggers))
+                )
 
+              // Set up this initial item for mapping out its
+              // successors.
               itemsQueue.enqueue((None, i, isMulti))
             }
 
@@ -164,22 +169,38 @@ object HandleFinder {
     }
 
     // If the resulting state has more than one ready element:
-    {
-      // If the prior state did not have multiple ready elements, then
-      // we must annotate the jump to multiple elements.
-      ???
-    }
+    if (succMulti)
+    then {
+      // If the prior state does not have multiple ready elements,
+      // then we must annotate the jump to multiple elements.
+      if !prevMulti then
+        prev.map(_ match {
+          case (prevItem, trans) =>
+            nfa.setAnnotation(
+              prevItem, trans, nextItem, NfaAnnotation(List.from(nextItem.triggers))
+            )
+        })
 
-    // Otherwise if the resulting state has zero or one ready
-    // elements:
-    {
-      // Add an epsilon transition to the station of the trigger
-      // above.
-      ???
-    }
+    } else
+      // Otherwise add an epsilon transition to the station of the
+      // trigger above.
+      prev.map(_ match {
+        case (prevItem, trans) =>
+          nfa.addETransition(prevItem, trans)
+      })
 
     // Now look at each of the action hints for the succeeding
     // element, and enqueue elements for them.
-    ???
+    for ((trigger, hint) <- nextItem.actionHints)
+      do
+        nextItem(trigger) match {
+          case None => { } // Weird, but whatevs
+          case Some(afterNext) =>
+            queue.enqueue((
+              Some((nextItem, trigger)),
+              afterNext,
+              afterNext.actionHints.size > 1
+            ))
+        }
   }
 }
