@@ -42,11 +42,30 @@ given yrNdaNodeLabeling[T, H, S]:
       }
       sb.toString()
     }
-    case OneItem(rule, isFinal) => {
-      "I2"
+    case OneItem(One(goal, subgoals, _), isFinal) => {
+      val sb = new StringBuilder
+      sb ++= goal.toString()
+      sb ++= " - "
+      if (!isFinal) { sb ++= "*" }
+      sb ++= "("
+      var sep = ""
+      for (subgoal <- subgoals) do {
+        sb ++= sep
+        sb ++= subgoal.toString()
+        sep = " | "
+      }
+      sb ++= ")"
+      if (isFinal) { sb ++= "*" }
+      sb.toString()
     }
-    case ActItem(rule, isFinal) => {
-      "I3"
+    case ActItem(Act(goal, action), isFinal) => {
+      val sb = new StringBuilder
+      sb ++= goal.toString()
+      sb ++= " - "
+      if (!isFinal) { sb ++= "*" }
+      sb ++= action.toString()
+      if (isFinal) { sb ++= "*" }
+      sb.toString()
     }
     case ind: Ind[T, H, S] => "NN"
     case station: H => station.toString
