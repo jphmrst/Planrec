@@ -20,5 +20,5 @@ Compile / doc / scalacOptions ++= Seq(
 )
 
 val main = Project(id = "planrec", base = file("."))
-  .dependsOn(RootProject(file("/home/jm/Lib/Scala/git-LaTeX")))
+  .dependsOn(RootProject(file("/home/jm/Lib/Scala/LaTeX")))
   .dependsOn(RootProject(file("/home/jm/Lib/Scala/Automata")))

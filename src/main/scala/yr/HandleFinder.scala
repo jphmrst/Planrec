@@ -10,6 +10,7 @@
 
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
+import org.maraist.graphviz.{NodeLabeling}
 import org.maraist.fa.annotated.
   {EdgeAnnotatedNDFA, NDFAEdgeAnnotationsBuilder,
     HashEdgeAnnotatedNDFABuilder, EdgeAnnotatedDFA, setCombiner}
@@ -27,6 +28,31 @@ case class NfaAnnotation[T, H, S](indirects: List[H])
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
+given yrNdaNodeLabeling[T, H, S]:
+    NodeLabeling[Node[T, H, S]] = new NodeLabeling[Node[T, H, S]] {
+  override def getLabel(node: Node[T, H, S]): String = node match {
+    case AllItem(All(goal, subgoals, _), ready) => {
+      val sb = new StringBuilder
+      sb ++= goal.toString()
+      sb ++= " -"
+      for (i <- 0 until subgoals.size) do {
+        sb ++= " "
+        if (ready.contains(i)) { sb ++= "*" }
+        sb ++= subgoals(i).toString()
+      }
+      sb.toString()
+    }
+    case OneItem(rule, isFinal) => {
+      "I2"
+    }
+    case ActItem(rule, isFinal) => {
+      "I3"
+    }
+    case ind: Ind[T, H, S] => "NN"
+    case station: H => station.toString
+  }
+}
+
 type HandleFinder[T, H, S] =
   EdgeAnnotatedDFA[
     Set[Node[T, H, S]],
@@ -42,6 +68,7 @@ type NondetHandleFinder[T, H, S] =
     Set[NfaAnnotation[T, H, S]],
     ? <: HandleFinder[T, H, S]
   ]
+
 type NondetHandleFinderBuilder[T, H, S] =
   NDFAEdgeAnnotationsBuilder[
     Node[T, H, S], H,
@@ -51,6 +78,7 @@ type NondetHandleFinderBuilder[T, H, S] =
     NondetHandleFinder[T, H, S],
     ?
   ]
+
 type NondetHandleFinderBuilderConcrete[T, H, S] =
   HashEdgeAnnotatedNDFABuilder[
     Node[T, H, S],
@@ -70,10 +98,12 @@ object HandleFinder {
     val nfaBuilder = new NondetHandleFinderBuilderConcrete[T, H, S]()
 
     // First add all of the rule heads as stations.
-    for (head <- library.heads)
-      do if library.top.contains(head)
-         then nfaBuilder.addInitialState(head)
-         else nfaBuilder.addState(head)
+    for (head <- library.goals.map(_.termHead))
+      do {
+        if library.top.contains(head)
+        then nfaBuilder.addInitialState(head)
+        else nfaBuilder.addState(head)
+      }
 
     // Queue for all of the items which need to be processed.
     val itemsQueue =
@@ -94,13 +124,15 @@ object HandleFinder {
       // item.  Note that we maintain the invariant that all items in
       // the processing queue are already nodes in the NFA.
       rule match {
-        case r: One[T, H, S] => {
+        case r @ One(_, subgoals, probs) => { // TODO Do something with probs
           val finalItem = OneItem(r, true)
           nfaBuilder.addState(finalItem)
           // OK to use triggers instead of actionHints here because
           // they all lead to the finalItem.
           for (t <- initial.triggers)
             do nfaBuilder.addTransition(initial, t, finalItem)
+          for (s <- subgoals)
+            do nfaBuilder.addETransition(initial, s.termHead)
         }
         case r: Act[T, H, S] => {
           val finalItem = ActItem(r, true)

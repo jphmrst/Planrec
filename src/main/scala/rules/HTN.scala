@@ -201,6 +201,14 @@ class HTNLib[T, H, S]
     */
   val probs: Seq[Double] = normalizeSeq(topProbs)
 
+  def goals: Set[T] = {
+    val builder = Set.newBuilder[T]
+    for (rule <- rules) do {
+      builder += rule.goal
+    }
+    builder.result()
+  }
+
   def heads: Set[H] = {
     val builder = Set.newBuilder[H]
     for (rule <- rules) do rule match {

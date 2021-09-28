@@ -9,6 +9,7 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.samples
+import org.maraist.graphviz.{NodeLabeling}
 import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
@@ -79,6 +80,7 @@ object Sample extends Sampler {
     guide ++= "\\end{center}\n"
     // TODO
 
+    import org.maraist.planrec.yr.table.yrNdaNodeLabeling
     given TermImpl[T, H, S] = sample.termImpl
     val table = Table(library)
     guide ++= "\\subsection{YR}\n"
