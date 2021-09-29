@@ -80,7 +80,8 @@ object Sample extends Sampler {
     guide ++= "\\end{center}\n"
     // TODO
 
-    import org.maraist.planrec.yr.table.yrNdaGraphStyle
+    import org.maraist.planrec.yr.table.yrNfaGraphStyle
+    import org.maraist.planrec.yr.table.yrDfaGraphStyle
     import org.maraist.planrec.yr.table.Node
     given TermImpl[T, H, S] = sample.termImpl
 
@@ -90,9 +91,7 @@ object Sample extends Sampler {
     val nfa = HandleFinder.libToNFA(library)
     graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
     guide ++= "\\subsection*{DFA}\n"
-    graphable(
-      guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth
-    )
+    graphable(guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth)
   }
 
   @main def writeSamples: Unit = {

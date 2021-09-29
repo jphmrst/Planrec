@@ -216,7 +216,50 @@ object HandleFinder {
   }
 }
 
-given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
+def nodeDOT[T, H, S](node: Node[T, H, S]): String = node match {
+  case AllItem(All(goal, subgoals, _), ready) => {
+    val sb = new StringBuilder
+    sb ++= goal.toString()
+    sb ++= " &rarr;"
+    for (i <- 0 until subgoals.size) do {
+      sb ++= " "
+      if (ready.contains(i)) { sb ++= "&#x2022;" }
+      sb ++= subgoals(i).toString()
+    }
+    if (ready.isEmpty) { sb ++= "&#x2022;" }
+    sb.toString()
+  }
+  case OneItem(One(goal, subgoals, _), isFinal) => {
+    val sb = new StringBuilder
+    sb ++= goal.toString()
+    sb ++= " &rarr; "
+    if (!isFinal) { sb ++= "&#x2022;" }
+    sb ++= "("
+    var sep = ""
+    for (subgoal <- subgoals) do {
+      sb ++= sep
+      sb ++= subgoal.toString()
+      sep = " | "
+    }
+    sb ++= ")"
+    if (isFinal) { sb ++= "&#x2022;" }
+    sb.toString()
+  }
+  case ActItem(Act(goal, action), isFinal) => {
+    val sb = new StringBuilder
+    sb ++= goal.toString()
+    sb ++= " &rarr; "
+    if (!isFinal) { sb ++= "&#x2022;" }
+    sb ++= action.toString()
+    if (isFinal) { sb ++= "&#x2022;" }
+    sb.toString()
+  }
+  case Ind(_) => "NN"
+  // Last case is for the station, not under a constructor.
+  case _ => node.toString
+}
+
+given yrNfaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
   new GraphStyle[Node[T, H, S], H](
 
     finalNodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H])
@@ -252,47 +295,66 @@ given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
       }
     }),
 
-    nodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
-      => node match {
-        case AllItem(All(goal, subgoals, _), ready) => {
-          val sb = new StringBuilder
-          sb ++= goal.toString()
-          sb ++= " &rarr;"
-          for (i <- 0 until subgoals.size) do {
-            sb ++= " "
-            if (ready.contains(i)) { sb ++= "&#x2022;" }
-            sb ++= subgoals(i).toString()
+    nodeLabel = (node: Node[T, H, S], _: Graphable[Node[T, H, S], H])
+      => nodeDOT(node)
+  )
+
+given yrDfaGraphStyle[T, H, S, NS <: Set[Node[T, H, S]]]: GraphStyle[NS, H] =
+  new GraphStyle[NS, H](
+
+    finalNodeShape = (
+      s: NS,
+      _: Graphable[NS, H]
+    ) => "box3d",
+
+    nodeShape = (s: NS, _: Graphable[NS, H])
+      => s match {
+        case _: Item[_, _, _] => "rectangle"
+        case _: Ind[_, _, _]  => "rectangle"
+        case _ => "circle"
+      },
+
+    edgeLabel = (
+      t: H, s0: NS, s1: NS,
+      graph: Graphable[NS, H]
+    ) => t.toString + (graph match {
+      case dfa: HandleFinder[T, H, S] => {
+        dfa.annotation(s0, t) match {
+          case Some(annSet) => {
+            val sb = new StringBuilder
+            var sep2 = ""
+            for (ann <- annSet) do ann match {
+              case NfaAnnotation(indirs) => {
+                sb ++= sep2
+                sb ++= " {"
+                var sep = ""
+                for (ind <- indirs) do {
+                  sb ++= sep
+                  sb ++= ind.toString()
+                  sep = ", "
+                }
+                sb ++= "}"
+                sep2 = "; "
+              }
+            }
+            sb.toString()
           }
-            if (ready.isEmpty) { sb ++= "&#x2022;" }
-          sb.toString()
+          case None => ""
         }
-        case OneItem(One(goal, subgoals, _), isFinal) => {
-          val sb = new StringBuilder
-          sb ++= goal.toString()
-          sb ++= " &rarr; "
-          if (!isFinal) { sb ++= "&#x2022;" }
-          sb ++= "("
-          var sep = ""
-          for (subgoal <- subgoals) do {
-            sb ++= sep
-            sb ++= subgoal.toString()
-            sep = " | "
-          }
-          sb ++= ")"
-          if (isFinal) { sb ++= "&#x2022;" }
-          sb.toString()
-        }
-        case ActItem(Act(goal, action), isFinal) => {
-          val sb = new StringBuilder
-          sb ++= goal.toString()
-          sb ++= " &rarr; "
-          if (!isFinal) { sb ++= "&#x2022;" }
-          sb ++= action.toString()
-          if (isFinal) { sb ++= "&#x2022;" }
-          sb.toString()
-        }
-        case Ind(_) => "NN"
-        // Last case is for the station, not under a constructor.
-        case _ => node.toString
       }
+    }),
+
+    nodeLabel = (
+      nodeSet: NS,
+      graph: Graphable[NS, H]
+    ) => {
+      val sb = new StringBuilder
+      var sep = ""
+      for (node <- nodeSet) do {
+        sb ++= sep
+        sb ++= nodeDOT(node)
+        sep = "<br>"
+      }
+      sb.toString()
+    }
   )
