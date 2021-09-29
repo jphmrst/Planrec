@@ -30,7 +30,32 @@ type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
 given yrNdaGraphvizOptions[T, H, S]: GraphvizOptions[Node[T, H, S], H] =
   new GraphvizOptions[Node[T, H, S], H](
+
     nodeShape = "rectangle",
+
+    getEdgeLabel = (
+      t: H, s0: Node[T, H, S], s1: Node[T, H, S],
+      graph: Graphable[Node[T, H, S], H]
+    ) => t.toString + (graph match {
+      case nfa: NondetHandleFinder[T, H, S] => {
+        nfa.annotation(s0, t, s1) match {
+          case Some(NfaAnnotation(indirs)) => {
+            val sb = new StringBuilder
+            sb ++= " {"
+            var sep = ""
+            for (ind <- indirs) do {
+              sb ++= sep
+              sb ++= ind.toString()
+              sep = ", "
+            }
+            sb ++= "}"
+            sb.toString()
+          }
+          case None => ""
+        }
+      }
+    }),
+
     getNodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
       => node match {
         case AllItem(All(goal, subgoals, _), ready) => {
@@ -69,8 +94,9 @@ given yrNdaGraphvizOptions[T, H, S]: GraphvizOptions[Node[T, H, S], H] =
           if (isFinal) { sb ++= "*" }
           sb.toString()
         }
-        case ind: Ind[T, H, S] => "NN"
-        case station: H => station.toString
+        case Ind(_) => "NN"
+        // Last case is for the station, not under a constructor.
+        case _ => node.toString
       }
   )
 
