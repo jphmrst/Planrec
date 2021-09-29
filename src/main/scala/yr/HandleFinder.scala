@@ -10,7 +10,7 @@
 
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
-import org.maraist.graphviz.{Graphable, NodeLabeling}
+import org.maraist.graphviz.{Graphable,GraphvizOptions}
 import org.maraist.fa.annotated.
   {EdgeAnnotatedNDFA, NDFAEdgeAnnotationsBuilder,
     HashEdgeAnnotatedNDFABuilder, EdgeAnnotatedDFA, setCombiner}
@@ -28,52 +28,51 @@ case class NfaAnnotation[T, H, S](indirects: List[H])
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
-given yrNdaNodeLabeling[T, H, S]:
-    NodeLabeling[Node[T, H, S], H] = new NodeLabeling[Node[T, H, S], H] {
-  override def getLabel(
-    node: Node[T, H, S],
-    graph: Graphable[Node[T, H, S], H]):
-      String = node match {
-    case AllItem(All(goal, subgoals, _), ready) => {
-      val sb = new StringBuilder
-      sb ++= goal.toString()
-      sb ++= " -"
-      for (i <- 0 until subgoals.size) do {
-        sb ++= " "
-        if (ready.contains(i)) { sb ++= "*" }
-        sb ++= subgoals(i).toString()
+given yrNdaGraphvizOptions[T, H, S]: GraphvizOptions[Node[T, H, S], H] =
+  new GraphvizOptions[Node[T, H, S], H](
+    nodeShape = "rectangle",
+    getNodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
+      => node match {
+        case AllItem(All(goal, subgoals, _), ready) => {
+          val sb = new StringBuilder
+          sb ++= goal.toString()
+          sb ++= " -"
+          for (i <- 0 until subgoals.size) do {
+            sb ++= " "
+            if (ready.contains(i)) { sb ++= "*" }
+            sb ++= subgoals(i).toString()
+          }
+          sb.toString()
+        }
+        case OneItem(One(goal, subgoals, _), isFinal) => {
+          val sb = new StringBuilder
+          sb ++= goal.toString()
+          sb ++= " - "
+          if (!isFinal) { sb ++= "*" }
+          sb ++= "("
+          var sep = ""
+          for (subgoal <- subgoals) do {
+            sb ++= sep
+            sb ++= subgoal.toString()
+            sep = " | "
+          }
+          sb ++= ")"
+          if (isFinal) { sb ++= "*" }
+          sb.toString()
+        }
+        case ActItem(Act(goal, action), isFinal) => {
+          val sb = new StringBuilder
+          sb ++= goal.toString()
+          sb ++= " - "
+          if (!isFinal) { sb ++= "*" }
+          sb ++= action.toString()
+          if (isFinal) { sb ++= "*" }
+          sb.toString()
+        }
+        case ind: Ind[T, H, S] => "NN"
+        case station: H => station.toString
       }
-      sb.toString()
-    }
-    case OneItem(One(goal, subgoals, _), isFinal) => {
-      val sb = new StringBuilder
-      sb ++= goal.toString()
-      sb ++= " - "
-      if (!isFinal) { sb ++= "*" }
-      sb ++= "("
-      var sep = ""
-      for (subgoal <- subgoals) do {
-        sb ++= sep
-        sb ++= subgoal.toString()
-        sep = " | "
-      }
-      sb ++= ")"
-      if (isFinal) { sb ++= "*" }
-      sb.toString()
-    }
-    case ActItem(Act(goal, action), isFinal) => {
-      val sb = new StringBuilder
-      sb ++= goal.toString()
-      sb ++= " - "
-      if (!isFinal) { sb ++= "*" }
-      sb ++= action.toString()
-      if (isFinal) { sb ++= "*" }
-      sb.toString()
-    }
-    case ind: Ind[T, H, S] => "NN"
-    case station: H => station.toString
-  }
-}
+  )
 
 type HandleFinder[T, H, S] =
   EdgeAnnotatedDFA[
