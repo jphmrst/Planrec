@@ -10,7 +10,7 @@
 
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
-import org.maraist.graphviz.{Graphable,GraphvizOptions}
+import org.maraist.graphviz.{Graphable,GraphStyle}
 import org.maraist.fa.annotated.
   {EdgeAnnotatedNDFA, NDFAEdgeAnnotationsBuilder,
     HashEdgeAnnotatedNDFABuilder, EdgeAnnotatedDFA, setCombiner}
@@ -28,8 +28,8 @@ case class NfaAnnotation[T, H, S](indirects: List[H])
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
-given yrNdaGraphvizOptions[T, H, S]: GraphvizOptions[Node[T, H, S], H] =
-  new GraphvizOptions[Node[T, H, S], H](
+given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
+  new GraphStyle[Node[T, H, S], H](
 
     nodeShape = "rectangle",
 
