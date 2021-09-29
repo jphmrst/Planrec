@@ -33,7 +33,7 @@ given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
 
     nodeShape = "rectangle",
 
-    getEdgeLabel = (
+    edgeLabel = (
       t: H, s0: Node[T, H, S], s1: Node[T, H, S],
       graph: Graphable[Node[T, H, S], H]
     ) => t.toString + (graph match {
@@ -56,7 +56,7 @@ given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
       }
     }),
 
-    getNodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
+    nodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
       => node match {
         case AllItem(All(goal, subgoals, _), ready) => {
           val sb = new StringBuilder
