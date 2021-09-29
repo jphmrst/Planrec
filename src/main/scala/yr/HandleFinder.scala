@@ -28,78 +28,6 @@ case class NfaAnnotation[T, H, S](indirects: List[H])
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
-given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
-  new GraphStyle[Node[T, H, S], H](
-
-    nodeShape = "rectangle",
-
-    edgeLabel = (
-      t: H, s0: Node[T, H, S], s1: Node[T, H, S],
-      graph: Graphable[Node[T, H, S], H]
-    ) => t.toString + (graph match {
-      case nfa: NondetHandleFinder[T, H, S] => {
-        nfa.annotation(s0, t, s1) match {
-          case Some(NfaAnnotation(indirs)) => {
-            val sb = new StringBuilder
-            sb ++= " {"
-            var sep = ""
-            for (ind <- indirs) do {
-              sb ++= sep
-              sb ++= ind.toString()
-              sep = ", "
-            }
-            sb ++= "}"
-            sb.toString()
-          }
-          case None => ""
-        }
-      }
-    }),
-
-    nodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
-      => node match {
-        case AllItem(All(goal, subgoals, _), ready) => {
-          val sb = new StringBuilder
-          sb ++= goal.toString()
-          sb ++= " -"
-          for (i <- 0 until subgoals.size) do {
-            sb ++= " "
-            if (ready.contains(i)) { sb ++= "*" }
-            sb ++= subgoals(i).toString()
-          }
-          sb.toString()
-        }
-        case OneItem(One(goal, subgoals, _), isFinal) => {
-          val sb = new StringBuilder
-          sb ++= goal.toString()
-          sb ++= " - "
-          if (!isFinal) { sb ++= "*" }
-          sb ++= "("
-          var sep = ""
-          for (subgoal <- subgoals) do {
-            sb ++= sep
-            sb ++= subgoal.toString()
-            sep = " | "
-          }
-          sb ++= ")"
-          if (isFinal) { sb ++= "*" }
-          sb.toString()
-        }
-        case ActItem(Act(goal, action), isFinal) => {
-          val sb = new StringBuilder
-          sb ++= goal.toString()
-          sb ++= " - "
-          if (!isFinal) { sb ++= "*" }
-          sb ++= action.toString()
-          if (isFinal) { sb ++= "*" }
-          sb.toString()
-        }
-        case Ind(_) => "NN"
-        // Last case is for the station, not under a constructor.
-        case _ => node.toString
-      }
-  )
-
 type HandleFinder[T, H, S] =
   EdgeAnnotatedDFA[
     Set[Node[T, H, S]],
@@ -173,7 +101,7 @@ object HandleFinder {
       rule match {
         case r @ One(_, subgoals, probs) => { // TODO Do something with probs
           val finalItem = OneItem(r, true)
-          nfaBuilder.addState(finalItem)
+          nfaBuilder.addFinalState(finalItem)
           // OK to use triggers instead of actionHints here because
           // they all lead to the finalItem.
           for (t <- initial.triggers)
@@ -183,7 +111,7 @@ object HandleFinder {
         }
         case r: Act[T, H, S] => {
           val finalItem = ActItem(r, true)
-          nfaBuilder.addState(finalItem)
+          nfaBuilder.addFinalState(finalItem)
           nfaBuilder.addTransition(initial, r.action.termHead, finalItem)
         }
         case r: All[T, H, S] => {
@@ -237,6 +165,9 @@ object HandleFinder {
     succMulti: Boolean):
       Unit = {
 
+    // If the item is final, mark it as a final state.
+    if (nextItem.isFinal) then nfa.addFinalState(nextItem)
+
     // If there is a previous element, add a transition to it.
     prev.map(_ match {
       case (prevItem, trans) => nfa.addTransition(prevItem, trans, nextItem)
@@ -274,12 +205,94 @@ object HandleFinder {
       do
         nextItem(trigger) match {
           case None => { } // Weird, but whatevs
-          case Some(afterNext) =>
+          case Some(afterNext) => {
             queue.enqueue((
               Some((nextItem, trigger)),
               afterNext,
               afterNext.actionHints.size > 1
             ))
+          }
         }
   }
 }
+
+given yrNdaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
+  new GraphStyle[Node[T, H, S], H](
+
+    finalNodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H])
+      => "box3d",
+
+    nodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H])
+      => s match {
+        case _: Item[_, _, _] => "rectangle"
+        case _: Ind[_, _, _]  => "rectangle"
+        case _ => "circle"
+      },
+
+    edgeLabel = (
+      t: H, s0: Node[T, H, S], s1: Node[T, H, S],
+      graph: Graphable[Node[T, H, S], H]
+    ) => t.toString + (graph match {
+      case nfa: NondetHandleFinder[T, H, S] => {
+        nfa.annotation(s0, t, s1) match {
+          case Some(NfaAnnotation(indirs)) => {
+            val sb = new StringBuilder
+            sb ++= " {"
+            var sep = ""
+            for (ind <- indirs) do {
+              sb ++= sep
+              sb ++= ind.toString()
+              sep = ", "
+            }
+            sb ++= "}"
+            sb.toString()
+          }
+          case None => ""
+        }
+      }
+    }),
+
+    nodeLabel = (node: Node[T, H, S], graph: Graphable[Node[T, H, S], H])
+      => node match {
+        case AllItem(All(goal, subgoals, _), ready) => {
+          val sb = new StringBuilder
+          sb ++= goal.toString()
+          sb ++= " &rarr;"
+          for (i <- 0 until subgoals.size) do {
+            sb ++= " "
+            if (ready.contains(i)) { sb ++= "&#x2022;" }
+            sb ++= subgoals(i).toString()
+          }
+            if (ready.isEmpty) { sb ++= "&#x2022;" }
+          sb.toString()
+        }
+        case OneItem(One(goal, subgoals, _), isFinal) => {
+          val sb = new StringBuilder
+          sb ++= goal.toString()
+          sb ++= " &rarr; "
+          if (!isFinal) { sb ++= "&#x2022;" }
+          sb ++= "("
+          var sep = ""
+          for (subgoal <- subgoals) do {
+            sb ++= sep
+            sb ++= subgoal.toString()
+            sep = " | "
+          }
+          sb ++= ")"
+          if (isFinal) { sb ++= "&#x2022;" }
+          sb.toString()
+        }
+        case ActItem(Act(goal, action), isFinal) => {
+          val sb = new StringBuilder
+          sb ++= goal.toString()
+          sb ++= " &rarr; "
+          if (!isFinal) { sb ++= "&#x2022;" }
+          sb ++= action.toString()
+          if (isFinal) { sb ++= "&#x2022;" }
+          sb.toString()
+        }
+        case Ind(_) => "NN"
+        // Last case is for the station, not under a constructor.
+        case _ => node.toString
+      }
+  )
