@@ -9,7 +9,7 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.samples
-import org.maraist.graphviz.{NodeLabeling}
+import org.maraist.graphviz.{GraphvizOptions,NodeLabeling}
 import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
@@ -81,15 +81,20 @@ object Sample extends Sampler {
     // TODO
 
     import org.maraist.planrec.yr.table.yrNdaNodeLabeling
+    import org.maraist.planrec.yr.table.Node
     given TermImpl[T, H, S] = sample.termImpl
+    given opts: GraphvizOptions[Node[T, H, S], H] =
+      new GraphvizOptions[Node[T, H, S], H]
+    opts.nodeShape = "rectangle"
+
     val table = Table(library)
     guide ++= "\\subsection{YR}\n"
     guide ++= "\\subsection*{NFA}\n"
     val nfa = HandleFinder.libToNFA(library)
-    graphable(guide, cleaner, nfa, tag+"NFA", tag+" NFA", sample.nfaWidth)
+    graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
     guide ++= "\\subsection*{DFA}\n"
     graphable(
-      guide, cleaner, table.dfa, tag+"DFA", tag+" DFA", sample.dfaWidth
+      guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth
     )
   }
 

@@ -10,7 +10,7 @@
 
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
-import org.maraist.graphviz.{NodeLabeling}
+import org.maraist.graphviz.{Graphable, NodeLabeling}
 import org.maraist.fa.annotated.
   {EdgeAnnotatedNDFA, NDFAEdgeAnnotationsBuilder,
     HashEdgeAnnotatedNDFABuilder, EdgeAnnotatedDFA, setCombiner}
@@ -29,8 +29,11 @@ case class NfaAnnotation[T, H, S](indirects: List[H])
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
 given yrNdaNodeLabeling[T, H, S]:
-    NodeLabeling[Node[T, H, S]] = new NodeLabeling[Node[T, H, S]] {
-  override def getLabel(node: Node[T, H, S]): String = node match {
+    NodeLabeling[Node[T, H, S], H] = new NodeLabeling[Node[T, H, S], H] {
+  override def getLabel(
+    node: Node[T, H, S],
+    graph: Graphable[Node[T, H, S], H]):
+      String = node match {
     case AllItem(All(goal, subgoals, _), ready) => {
       val sb = new StringBuilder
       sb ++= goal.toString()
