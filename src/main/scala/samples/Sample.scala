@@ -89,8 +89,10 @@ object Sample extends Sampler {
     guide ++= "\\subsection{YR}\n"
     guide ++= "\\subsection*{NFA}\n"
     val nfa = HandleFinder.libToNFA(library)
+    // println("\nFrom Sample for NFA " + tag + ":")
     graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
     guide ++= "\\subsection*{DFA}\n"
+    // println("\nFrom Sample for DFA " + tag + ":")
     graphable(guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth)
   }
 

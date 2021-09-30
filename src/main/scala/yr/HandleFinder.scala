@@ -261,6 +261,7 @@ def nodeDOT[T, H, S](node: Node[T, H, S]): String = node match {
 
 given yrNfaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
   new GraphStyle[Node[T, H, S], H](
+    id = "yrNfaGraphStyle",
 
     finalNodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H])
       => "box3d",
@@ -299,8 +300,23 @@ given yrNfaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
       => nodeDOT(node)
   )
 
+given yrDfaGraphStyleTest[T, H, S]: GraphStyle[Set[Node[T, H, S]], H] =
+  new GraphStyle[Set[Node[T, H, S]], H](
+    id = "yrDfaGraphStyleTest",
+
+    edgeLabel = (
+      t: H, s0: Set[Node[T, H, S]], s1: Set[Node[T, H, S]],
+      graph: Graphable[Set[Node[T, H, S]], H]
+    ) => "EE",
+
+    nodeLabel = (_: Set[Node[T, H, S]], _: Graphable[Set[Node[T, H, S]], H])
+      => "NN"
+
+  )
+
 given yrDfaGraphStyle[T, H, S, NS <: Set[Node[T, H, S]]]: GraphStyle[NS, H] =
   new GraphStyle[NS, H](
+    id = "yrDfaGraphStyle",
 
     finalNodeShape = (
       s: NS,
@@ -353,7 +369,7 @@ given yrDfaGraphStyle[T, H, S, NS <: Set[Node[T, H, S]]]: GraphStyle[NS, H] =
       for (node <- nodeSet) do {
         sb ++= sep
         sb ++= nodeDOT(node)
-        sep = "<br>"
+        sep = "<br/>"
       }
       sb.toString()
     }
