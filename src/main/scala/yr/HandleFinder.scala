@@ -324,11 +324,7 @@ given yrDfaGraphStyle[T, H, S, NS <: Set[Node[T, H, S]]]: GraphStyle[NS, H] =
     ) => "box3d",
 
     nodeShape = (s: NS, _: Graphable[NS, H])
-      => s match {
-        case _: Item[_, _, _] => "rectangle"
-        case _: Ind[_, _, _]  => "rectangle"
-        case _ => "circle"
-      },
+      => "rectangle",
 
     edgeLabel = (
       t: H, s0: NS, s1: NS,
