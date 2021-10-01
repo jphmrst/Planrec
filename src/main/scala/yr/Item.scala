@@ -106,14 +106,17 @@ case class AllItem[T, H, S](val rule: All[T, H, S], val ready: Set[Int])
   def apply(trigger: H)(using hint: TriggerHint):
       Option[AllItem[T, H, S]] =
     Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
-      .map(
-        (i) => {
-          val sb = Set.newBuilder[Int]
-          for(j <- ready; if i != j) { sb += j }
-          for((before, after) <- rule.order; if before == i) { sb += after }
-          AllItem(rule, sb.result())
-        }
-      )
+      .flatMap(applyIdx(_))
+
+  def applyIdx(i: Int): Option[AllItem[T, H, S]] =
+    if (ready.contains(i))
+      then {
+        val sb = Set.newBuilder[Int]
+        for(j <- ready; if i != j) { sb += j }
+        for((before, after) <- rule.order; if before == i) { sb += after }
+        Some(AllItem(rule, sb.result()))
+      }
+      else None
 
   def applications(trigger: H): Seq[TriggerHint] = {
     val builder = Seq.newBuilder[TriggerHint]

@@ -63,7 +63,7 @@ type NondetHandleFinderBuilderConcrete[T, H, S] =
   ]
 
 type ItemsQueue[T, H, S] =
-  Queue[(Option[(AllItem[T, H, S], H)], AllItem[T, H, S], Boolean)]
+  Queue[(Node[T, H, S], Set[Int], Option[Int], AllItem[T, H, S])]
 
 object HandleFinder {
   import org.maraist.planrec.rules.HTNLib
@@ -81,8 +81,7 @@ object HandleFinder {
       }
 
     // Queue for all of the items which need to be processed.
-    val itemsQueue =
-      new ItemsQueue[T, H, S]
+    val itemsQueue = new ItemsQueue[T, H, S]
 
     // Process each rule, or stage it for processing.
     for (rule <- library.rules) do {
@@ -119,7 +118,7 @@ object HandleFinder {
             case i: AllItem[T, H, S] => {
               val isMulti = (i.actionHints.size > 1)
 
-              // If multi, then add annotations to the epsilon
+              // If not multi, then add annotations to the epsilon
               // transition for the subgoals.
               if isMulti then
                 nfaBuilder.setEAnnotation(
@@ -128,7 +127,7 @@ object HandleFinder {
 
               // Set up this initial item for mapping out its
               // successors.
-              itemsQueue.enqueue((None, i, isMulti))
+              itemsQueue.enqueue((ruleGoalHead, Set.empty[Int], None, i))
             }
 
             case _ => { } // Other cases not possible, even though
@@ -141,8 +140,8 @@ object HandleFinder {
     // Process the items in the queue
     while (!(itemsQueue.isEmpty))
       itemsQueue.dequeue match
-        case (prev, item, multi) =>
-          encodeItemTransition(prev, item, nfaBuilder, itemsQueue, multi)
+        case (prev, par, trans, item) =>
+          encodeItemTransition(prev, par, trans, item, nfaBuilder, itemsQueue)
 
     nfaBuilder.toNDFA
   }
@@ -158,61 +157,86 @@ object HandleFinder {
     * pairs should be read from it.
     */
   def encodeItemTransition[T, H, S](
-    prev: Option[(AllItem[T, H, S], H)],
+    prev: Node[T, H, S],
+    par: Set[Int],
+    transIdx: Option[Int],
     nextItem: AllItem[T, H, S],
     nfa: NondetHandleFinderBuilder[T, H, S],
-    queue: ItemsQueue[T, H, S],
-    succMulti: Boolean):
+    queue: ItemsQueue[T, H, S])(
+    using TermImpl[T, H, S]):
       Unit = {
+    val rule = nextItem.rule
 
     // If the item is final, mark it as a final state.
     if (nextItem.isFinal) then nfa.addFinalState(nextItem)
 
-    // If there is a previous element, add a transition to it.
-    prev.map(_ match {
-      case (prevItem, trans) => nfa.addTransition(prevItem, trans, nextItem)
-    })
-
-    val prevMulti = prev match {
-      case None => succMulti
-      case Some(item, _) => (item.actionHints.size > 1)
+    // Work out the current spawned tasks _minus_ any in the
+    // transition.
+    val postTransPar = transIdx match {
+      case None => par
+      case Some(i) => par - i
     }
 
-    // If the resulting state has more than one ready element:
-    if (succMulti)
-    then {
-      // If the prior state does not have multiple ready elements,
-      // then we must annotate the jump to multiple elements.
-      if !prevMulti then
-        prev.map(_ match {
-          case (prevItem, trans) =>
-            nfa.setAnnotation(
-              prevItem, trans, nextItem, NfaAnnotation(List.from(nextItem.triggers))
-            )
-        })
+    // If there are any spawned tasks left, then nextItem is catching
+    // indirected subgoals.
+    val wasMulti = !postTransPar.isEmpty
 
-    } else
-      // Otherwise add an epsilon transition to the station of the
-      // trigger above.
-      prev.map(_ match {
-        case (prevItem, trans) =>
-          nfa.addETransition(prevItem, trans)
-      })
+    // We will also need to examine any triggers in the nextItem's
+    // ready set which are not already spawned out.
+    val newInNextItem = nextItem.ready -- postTransPar
 
-    // Now look at each of the action hints for the succeeding
-    // element, and enqueue elements for them.
-    for ((trigger, hint) <- nextItem.actionHints)
-      do
-        nextItem(trigger) match {
-          case None => { } // Weird, but whatevs
-          case Some(afterNext) => {
-            queue.enqueue((
-              Some((nextItem, trigger)),
-              afterNext,
-              afterNext.actionHints.size > 1
-            ))
-          }
+    // There is already a transition between prev and nextItem, but we
+    // may need to annotate it.
+    if ((wasMulti && newInNextItem.size > 0) || newInNextItem.size > 1)
+      then transIdx match {
+        case None => nfa.setEAnnotation(
+          prev, nextItem,
+          NfaAnnotation(List.from(newInNextItem.map(rule.subgoals(_).termHead)))
+        )
+        case Some(idx) => nfa.setAnnotation(
+          prev, rule.subgoals(idx).termHead, nextItem,
+          NfaAnnotation(
+            List.from(newInNextItem.map((i) => rule.subgoals(i).termHead)))
+        )
+      }
+
+    // Calculate the set of spawned terms active with nextItem
+    val parAfterNext = if (wasMulti || newInNextItem.size > 1) then {
+      postTransPar ++ newInNextItem
+    } else {
+      Set.empty[Int]
+    }
+
+
+    // TODO Check if nextItem has already been expanded --- skip the
+    // next bits if so.
+
+    // If we are not spawning the newly enabled subgoals, then we
+    // epsilon-transition to its station.
+    if (!wasMulti && newInNextItem.size <= 1) then {
+      newInNextItem.map(
+        (idx) => nfa.addETransition(nextItem, rule.subgoals(idx).termHead))
+    }
+
+    // We have (at least) a new queue entry for each subgoal which is
+    // ready in the new item.
+    for (newTransIdx <- nextItem.ready) do {
+      val newTransTerm = rule.subgoals(newTransIdx)
+      val newTrans = newTransTerm.termHead
+
+      // Build the resulting item, and add it to the NFA if it is not
+      // already there.
+      nextItem.applyIdx(newTransIdx) match {
+        case None => { }
+        case Some(afterNextItem) => {
+          // Add the transition
+          nfa.addTransition(nextItem, newTrans, afterNextItem)
+
+          // Add a queue entry
+          queue.enqueue((nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
         }
+      }
+    }
   }
 }
 
