@@ -18,6 +18,7 @@ trait RuleForm[T, H, S](using TermImpl[T,H,S])
     extends LaTeXRenderable {
   def goal: T
   def unblockedSubgoals: Set[T]
+  def apply(subst: S): RuleForm[T, H, S]
 }
 
 /** An "and-rule", indicating that a goal can be fulfilled by meeting
@@ -41,6 +42,9 @@ case class All[T, H, S](
                ("Ordered indices must refer to subgoal index")
   }
 
+  def apply(s: S): All[T, H, S] =
+    All(goal.subst(s), subgoals.map(_.subst(s)), order)
+
   def unblockedSubgoals: Set[T] = unblockedSubgoalIndices.map(subgoals(_))
 
   def unblockedSubgoalIndices: Set[Int] = {
@@ -60,8 +64,25 @@ case class All[T, H, S](
   def toLaTeX(doc: LaTeXdoc):
       Unit = {
     termRender.toLaTeX(doc, goal)
-    doc ++= " & ::= "
-    ???
+    var sep = " & ::= "
+    for(subgoal <- subgoals) {
+      doc ++= sep
+      termRender.toLaTeX(doc, subgoal)
+      sep = "\\,"
+    }
+
+    sep = " ($"
+    var fin = ""
+    for (pair <- order) {
+      pair match {
+        case (a,b) => {
+          doc ++= s"$sep$a < $b"
+        }
+      }
+      sep = ", "
+      fin = "$)"
+    }
+    doc ++= fin
   }
 }
 
@@ -116,6 +137,9 @@ case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Dou
     */
   val probs: Seq[Double] = normalizeSeq(subgoalProbs)
 
+  def apply(s: S): One[T, H, S] =
+    One(goal.subst(s), subgoals.map(_.subst(s)), subgoalProbs)
+
   def unblockedSubgoals: Set[T] = Set.from(subgoals)
 
   def toLaTeX(doc: LaTeXdoc):
@@ -125,7 +149,7 @@ case class One[T, H, S](val goal: T, val subgoals: Seq[T], subgoalProbs: Seq[Dou
     for(subgoal <- subgoals) {
       doc ++= sep
       termRender.toLaTeX(doc, subgoal)
-      sep = " | "
+      sep = " $|$ "
     }
   }
 }
@@ -138,10 +162,11 @@ case class Act[T, H, S](val goal: T, val action: T)
     extends RuleForm[T, H, S] {
   def unblockedSubgoals: Set[T] = Set.empty
 
-  def toLaTeX(doc: LaTeXdoc):
-      Unit = {
+  def apply(s: S): Act[T, H, S] = Act(goal.subst(s), action.subst(s))
+
+  def toLaTeX(doc: LaTeXdoc): Unit = {
     termRender.toLaTeX(doc, goal)
-    var sep = " & ::= "
+    doc ++= " & ::= "
     termRender.toLaTeX(doc, action)
   }
 }
@@ -158,15 +183,20 @@ object HTN {
 import HTN.*
 import org.maraist.planrec.PlanLibrary
 
-class HTNLib[T, H, S](
-  val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double]
-)(using TermImpl[T, H, S])
-    extends PlanLibrary[HTNrule, T, H, S] {
+class HTNLib[T, H, S]
+  (val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double])
+  (using TermImpl[T, H, S])
+  (using termRender: LaTeXRenderer[T])
+    extends PlanLibrary[HTNrule, T, H, S]
+    with LaTeXRenderable {
 
   if top.length != topProbs.length
   then throw new IllegalArgumentException(
     "Must have the same number of top-level goals and top-level goal "
       + "probabilities")
+
+  def rules(h: H): Set[HTNrule[T, H, S]] =
+    for(r <- rules; if r.goal.termHead == h) yield r
 
   /**
     * Normalized probabilities of each subgoal.
@@ -189,5 +219,14 @@ class HTNLib[T, H, S](
       }
     }
     builder.result()
+  }
+
+  def toLaTeX(doc: LaTeXdoc): Unit = {
+    doc ++= "\\begin{tabular}{r@{~}l}\n"
+    for(rule <- rules) {
+      rule.toLaTeX(doc)
+      doc ++= "\\\\\n"
+    }
+    doc ++= "\\end{tabular}\n"
   }
 }

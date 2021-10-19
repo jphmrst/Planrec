@@ -12,6 +12,7 @@ package org.maraist.planrec.generaltest
 import scala.language.adhocExtensions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.*
+import org.maraist.planrec.terms.Term.RenderCharAsTerm
 
 class GeneralTests extends AnyFlatSpec with Matchers {
 
