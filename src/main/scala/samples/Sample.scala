@@ -9,8 +9,6 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.samples
-import org.maraist.util.FilesCleaner
-import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 
 trait Sample {
@@ -24,7 +22,7 @@ trait Sample {
   def essay: String = ""
 }
 
-object Sample extends Sampler {
+object Sample {
   private val samplesBank =
     scala.collection.mutable.ArrayBuffer.empty[Sample]
 
@@ -50,38 +48,4 @@ object Sample extends Sampler {
     samplesBank += result
     result
   }
-
-  def addSamples(guide: LaTeXdoc): FilesCleaner = {
-    val cleaner = newCleaner()
-    for (sample <- samples) { addSample(guide, sample, cleaner) }
-    cleaner
-  }
-
-  def addSample(guide: LaTeXdoc, sample: Sample, cleaner: FilesCleaner) = {
-    guide ++= "\\section{"
-    if (!sample.desc.equals("")) guide ++= s"${sample.desc} --- "
-    guide ++= s"${sample.name}}\n"
-    if (!sample.essay.equals("")) guide ++=/ sample.essay
-    guide ++= "\\begin{center}\n"
-    sample.library.toLaTeX(guide)
-    guide ++= "\\end{center}\n"
-    // TODO
-  }
-
-  @main def writeSamples: Unit = {
-    HTNs.load
-    val guide = new LaTeXdoc("samples")
-
-    guide.addPackage("geometry", "margin=1in")
-    guide.addPackage("times")
-    guide.addPackage("graphicx")
-    // guide.addPackage("multicol")
-    guide.open()
-    // guide ++= "\\begin{multicols}{2}"
-    val cleanup = addSamples(guide)
-    // guide ++= "\\end{multicols}"
-    guide.close()
-    cleanup.clean
-  }
 }
-
