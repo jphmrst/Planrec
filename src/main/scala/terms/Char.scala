@@ -22,5 +22,6 @@ object Char {
     def substitute(t: Char, s: Unit): Char = t
 
   given RenderCharAsTerm: LaTeXRenderer[Char] with
-    override def toLaTeX(doc: LaTeXdoc, c: Char): Unit = { doc += c }
+    override def toLaTeX(doc: LaTeXdoc, c: Char): Unit =
+      ??? // { doc += c }
 }

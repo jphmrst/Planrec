@@ -30,7 +30,7 @@ trait Sample {
   def dfaWidth: String = "7in"
 }
 
-object Sample extends Sampler {
+object Sample {
   private val samplesBank =
     scala.collection.mutable.ArrayBuffer.empty[Sample]
 
@@ -111,4 +111,3 @@ object Sample extends Sampler {
     cleanup.clean
   }
 }
-
