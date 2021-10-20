@@ -10,10 +10,10 @@
 
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
-import org.maraist.graphviz.{Graphable,GraphStyle}
-import org.maraist.fa.annotated.
-  {EdgeAnnotatedNDFA, NDFAEdgeAnnotationsBuilder,
-    HashEdgeAnnotatedNDFABuilder, EdgeAnnotatedDFA, setCombiner}
+import org.maraist.graphviz.Graphable
+import org.maraist.fa.
+  {EdgeAnnotatedNFA, EdgeAnnotatedNFABuilder, EdgeAnnotatedDFA, setCombiner}
+import org.maraist.fa.util.setCombiner
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
 import org.maraist.planrec.rules.HTN.*
 import org.maraist.planrec.terms.TermImpl
@@ -36,41 +36,36 @@ type HandleFinder[T, H, S] =
   ]
 
 type NondetHandleFinder[T, H, S] =
-  EdgeAnnotatedNDFA[
-    Node[T, H, S],
-    H,
-    NfaAnnotation[T, H, S],
-    Set[NfaAnnotation[T, H, S]],
-    ? <: HandleFinder[T, H, S]
+  EdgeAnnotatedNFA[
+    Node[T, H, S], H,
+    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
   ]
 
 type NondetHandleFinderBuilder[T, H, S] =
-  NDFAEdgeAnnotationsBuilder[
+  EdgeAnnotatedNFABuilder[
     Node[T, H, S], H,
-    NfaAnnotation[T, H, S],
-    Set[NfaAnnotation[T, H, S]],
-    ?,
-    NondetHandleFinder[T, H, S],
-    ?
+    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
   ]
 
 type NondetHandleFinderBuilderConcrete[T, H, S] =
-  HashEdgeAnnotatedNDFABuilder[
+  EdgeAnnotatedNFABuilder[
     Node[T, H, S],
     H,
-    Set[NfaAnnotation[T, H, S]],
-    NfaAnnotation[T, H, S]
+    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
   ]
 
 type ItemsQueue[T, H, S] =
   Queue[(Node[T, H, S], Set[Int], Option[Int], AllItem[T, H, S])]
 
 object HandleFinder {
+  import org.maraist.fa.util.EdgeAnnotationCombiner.singleSetCombiner
   import org.maraist.planrec.rules.HTNLib
 
   def libToNFA[T, H, S](library: HTNLib[T, H, S])(using TermImpl[T, H, S]):
       NondetHandleFinder[T, H, S] = {
-    val nfaBuilder = new NondetHandleFinderBuilderConcrete[T, H, S]()
+    val nfaBuilder =
+      new NondetHandleFinderBuilderConcrete[T, H, S](
+        using singleSetCombiner[NfaAnnotation[T, H, S]])
 
     // First add all of the rule heads as stations.
     for (head <- library.goals.map(_.termHead))
@@ -143,7 +138,7 @@ object HandleFinder {
         case (prev, par, trans, item) =>
           encodeItemTransition(prev, par, trans, item, nfaBuilder, itemsQueue)
 
-    nfaBuilder.toNDFA
+    nfaBuilder.result
   }
 
   /** Add the necessary components to an [[NDFABuilder]] for the
@@ -239,158 +234,3 @@ object HandleFinder {
     }
   }
 }
-
-def nodeDOT[T, H, S](node: Node[T, H, S]): String = node match {
-  case AllItem(All(goal, subgoals, _), ready) => {
-    val sb = new StringBuilder
-    sb ++= goal.toString()
-    sb ++= " &rarr;"
-    for (i <- 0 until subgoals.size) do {
-      sb ++= " "
-      if (ready.contains(i)) { sb ++= "&#x2022;" }
-      sb ++= subgoals(i).toString()
-    }
-    if (ready.isEmpty) { sb ++= "&#x2022;" }
-    sb.toString()
-  }
-  case OneItem(One(goal, subgoals, _), isFinal) => {
-    val sb = new StringBuilder
-    sb ++= goal.toString()
-    sb ++= " &rarr; "
-    if (!isFinal) { sb ++= "&#x2022;" }
-    sb ++= "("
-    var sep = ""
-    for (subgoal <- subgoals) do {
-      sb ++= sep
-      sb ++= subgoal.toString()
-      sep = " | "
-    }
-    sb ++= ")"
-    if (isFinal) { sb ++= "&#x2022;" }
-    sb.toString()
-  }
-  case ActItem(Act(goal, action), isFinal) => {
-    val sb = new StringBuilder
-    sb ++= goal.toString()
-    sb ++= " &rarr; "
-    if (!isFinal) { sb ++= "&#x2022;" }
-    sb ++= action.toString()
-    if (isFinal) { sb ++= "&#x2022;" }
-    sb.toString()
-  }
-  case Ind(_) => "NN"
-  // Last case is for the station, not under a constructor.
-  case _ => node.toString
-}
-
-given yrNfaGraphStyle[T, H, S]: GraphStyle[Node[T, H, S], H] =
-  new GraphStyle[Node[T, H, S], H](
-    id = "yrNfaGraphStyle",
-
-    finalNodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H])
-      => "box3d",
-
-    nodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H])
-      => s match {
-        case _: Item[_, _, _] => "rectangle"
-        case _: Ind[_, _, _]  => "rectangle"
-        case _ => "circle"
-      },
-
-    edgeLabel = (
-      t: H, s0: Node[T, H, S], s1: Node[T, H, S],
-      graph: Graphable[Node[T, H, S], H]
-    ) => t.toString + (graph match {
-      case nfa: NondetHandleFinder[T, H, S] => {
-        nfa.annotation(s0, t, s1) match {
-          case Some(NfaAnnotation(indirs)) => {
-            val sb = new StringBuilder
-            sb ++= " {"
-            var sep = ""
-            for (ind <- indirs) do {
-              sb ++= sep
-              sb ++= ind.toString()
-              sep = ", "
-            }
-            sb ++= "}"
-            sb.toString()
-          }
-          case None => ""
-        }
-      }
-    }),
-
-    nodeLabel = (node: Node[T, H, S], _: Graphable[Node[T, H, S], H])
-      => nodeDOT(node)
-  )
-
-given yrDfaGraphStyleTest[T, H, S]: GraphStyle[Set[Node[T, H, S]], H] =
-  new GraphStyle[Set[Node[T, H, S]], H](
-    id = "yrDfaGraphStyleTest",
-
-    edgeLabel = (
-      t: H, s0: Set[Node[T, H, S]], s1: Set[Node[T, H, S]],
-      graph: Graphable[Set[Node[T, H, S]], H]
-    ) => "EE",
-
-    nodeLabel = (_: Set[Node[T, H, S]], _: Graphable[Set[Node[T, H, S]], H])
-      => "NN"
-
-  )
-
-given yrDfaGraphStyle[T, H, S, NS <: Set[Node[T, H, S]]]: GraphStyle[NS, H] =
-  new GraphStyle[NS, H](
-    id = "yrDfaGraphStyle",
-
-    finalNodeShape = (
-      s: NS,
-      _: Graphable[NS, H]
-    ) => "box3d",
-
-    nodeShape = (s: NS, _: Graphable[NS, H])
-      => "rectangle",
-
-    edgeLabel = (
-      t: H, s0: NS, s1: NS,
-      graph: Graphable[NS, H]
-    ) => t.toString + (graph match {
-      case dfa: HandleFinder[T, H, S] => {
-        dfa.annotation(s0, t) match {
-          case Some(annSet) => {
-            val sb = new StringBuilder
-            var sep2 = ""
-            for (ann <- annSet) do ann match {
-              case NfaAnnotation(indirs) => {
-                sb ++= sep2
-                sb ++= " {"
-                var sep = ""
-                for (ind <- indirs) do {
-                  sb ++= sep
-                  sb ++= ind.toString()
-                  sep = ", "
-                }
-                sb ++= "}"
-                sep2 = "; "
-              }
-            }
-            sb.toString()
-          }
-          case None => ""
-        }
-      }
-    }),
-
-    nodeLabel = (
-      nodeSet: NS,
-      graph: Graphable[NS, H]
-    ) => {
-      val sb = new StringBuilder
-      var sep = ""
-      for (node <- nodeSet) do {
-        sb ++= sep
-        sb ++= nodeDOT(node)
-        sep = "<br/>"
-      }
-      sb.toString()
-    }
-  )

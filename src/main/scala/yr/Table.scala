@@ -14,8 +14,6 @@ import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
 import org.maraist.planrec.terms.Term.*
 import org.maraist.planrec.rules.HTN.*
-import org.maraist.fa.hyperedges.{HyperedgeNDFA,HyperedgeDFA}
-import org.maraist.fa.hyperedges.impl.HashHyperedgeNDFABuilder
 
 class Table[T, H, S](val dfa: HandleFinder[T, H, S])(using TermImpl[T, H, S]) {
 }
