@@ -21,6 +21,7 @@ class GeneralTests extends AnyFlatSpec with Matchers {
 
   "FullAll" `should` "translate to All with sequence of order pairs" in {
     import org.maraist.planrec.rules.{All,FullAll}
+    import org.maraist.planrec.terms.Char.RenderCharAsTerm
     val full = FullAll('L', IndexedSeq('A', 'B', 'D'))
     full.order.size `should` be (2)
     full.order(0) `should` be ((0,1))
