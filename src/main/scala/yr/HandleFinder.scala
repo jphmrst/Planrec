@@ -11,9 +11,9 @@
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
 import org.maraist.graphviz.Graphable
-import org.maraist.fa.
-  {EdgeAnnotatedNFA, EdgeAnnotatedNFABuilder, EdgeAnnotatedDFA, setCombiner}
-import org.maraist.fa.util.setCombiner
+import org.maraist.fa.{
+  EdgeAnnotatedNFA, EdgeAnnotatedNFABuilder, EdgeAnnotatedDFA}
+import org.maraist.fa.util
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
 import org.maraist.planrec.rules.HTN.*
 import org.maraist.planrec.terms.TermImpl
@@ -21,6 +21,11 @@ import org.maraist.planrec.terms.Term.termHead
 import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
+
+given Combiner[T, H, S]: util.EdgeAnnotationCombiner[
+  NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
+] =
+  util.EdgeAnnotationCombiner.singleSetCombiner[NfaAnnotation[T, H, S]]
 
 case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 

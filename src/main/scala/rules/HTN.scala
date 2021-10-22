@@ -161,6 +161,10 @@ case class One[T, H, S]
 case class Act[T, H, S](val goal: T, val action: T)
   (using TermImpl[T, H, S])(using termRender: LaTeXRenderer[T])
     extends RuleForm[T, H, S] {
+
+  def apply(subst: S): Act[T, H, S] =
+    Act(goal.subst(subst), action.subst(subst))
+
   def unblockedSubgoals: Set[T] = Set.empty
 
   def toLaTeX(doc: LaTeXdoc):
