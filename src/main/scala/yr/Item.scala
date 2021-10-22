@@ -10,7 +10,6 @@
 
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
-import org.maraist.fa.NDFABuilder
 import org.maraist.planrec.rules.
   {All, One, Act, TriggerHint, TriggerMatchIndex, NoHint}
 import org.maraist.planrec.rules.HTN.*

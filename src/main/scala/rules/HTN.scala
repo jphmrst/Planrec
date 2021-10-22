@@ -18,6 +18,7 @@ trait RuleForm[T, H, S](using TermImpl[T,H,S])
     extends LaTeXRenderable {
   def goal: T
   def unblockedSubgoals: Set[T]
+  def apply(subst: S): RuleForm[T, H, S]
 }
 
 /** An "and-rule", indicating that a goal can be fulfilled by meeting
@@ -41,6 +42,9 @@ case class All[T, H, S](
                ("Ordered indices must refer to subgoal index")
   }
 
+  def apply(s: S): All[T, H, S] =
+    All(goal.subst(s), subgoals.map(_.subst(s)), order)
+
   def unblockedSubgoals: Set[T] = unblockedSubgoalIndices.map(subgoals(_))
 
   def unblockedSubgoalIndices: Set[Int] = {
@@ -60,8 +64,25 @@ case class All[T, H, S](
   def toLaTeX(doc: LaTeXdoc):
       Unit = {
     termRender.toLaTeX(doc, goal)
-    doc ++= " & ::= "
-    ???
+    var sep = " & ::= "
+    for(subgoal <- subgoals) {
+      doc ++= sep
+      termRender.toLaTeX(doc, subgoal)
+      sep = "\\,"
+    }
+
+    sep = " ($"
+    var fin = ""
+    for (pair <- order) {
+      pair match {
+        case (a,b) => {
+          doc ++= s"$sep$a < $b"
+        }
+      }
+      sep = ", "
+      fin = "$)"
+    }
+    doc ++= fin
   }
 }
 
@@ -112,6 +133,9 @@ case class One[T, H, S]
   then throw new IllegalArgumentException(
     "Must have the same number of subgoals and subgoal probabilities")
 
+  def apply(s: S): One[T, H, S] =
+    One(goal.subst(s), subgoals.map(_.subst(s)), subgoalProbs)
+
   /**
     * Normalized probabilities of each subgoal.
     */
@@ -126,7 +150,7 @@ case class One[T, H, S]
     for(subgoal <- subgoals) {
       doc ++= sep
       termRender.toLaTeX(doc, subgoal)
-      sep = " | "
+      sep = "$|$"
     }
   }
 }
@@ -160,8 +184,9 @@ import HTN.*
 import org.maraist.planrec.PlanLibrary
 
 class HTNLib[T, H, S](
-  val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double]
-)(using TermImpl[T, H, S])
+  val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double])(
+  using TermImpl[T, H, S])(
+  using termRender: LaTeXRenderer[T])
     extends PlanLibrary[HTNrule, T, H, S] {
 
   if top.length != topProbs.length
@@ -198,5 +223,14 @@ class HTNLib[T, H, S](
       }
     }
     builder.result()
+  }
+
+  def toLaTeX(doc: LaTeXdoc): Unit = {
+    doc ++= "\\begin{tabular}{r@{~}l}\n"
+    for(rule <- rules) {
+      rule.toLaTeX(doc)
+      doc ++= "\\\\\n"
+    }
+    doc ++= "\\end{tabular}\n"
   }
 }

@@ -20,6 +20,8 @@ object HTNs {
   // import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
 
+  def load: Unit = ()
+
   val aa = Act[String, String, Unit]("A", "a")
   val bb = Act[String, String, Unit]("B", "b")
   val cc = Act[String, String, Unit]("C", "c")
@@ -83,7 +85,7 @@ object HTNs {
       Seq("M"),
       Seq(1.0)
     ),
-    "reduce-reduce conflict",
+    "As CFG, shows a reduce-reduce conflict",
     Seq(
       Seq("a", "b")
     )
@@ -170,7 +172,7 @@ object HTNs {
       Seq('M'),
       Seq(1.0)
     ),
-    "Two-level fully-ordered and-rules.  Originally intended for ELEXIR testing, although we've dropped that.",
+    "Two-level fully-ordered and-rules.",
     Seq(
       Seq('a', 'b', 'c', 'd', 'e', 'f')
     )
@@ -197,7 +199,7 @@ object HTNs {
       Seq('L'),
       Seq(1.0)
     ),
-    "Balanced two-level fully-ordered and-rules.  Originally intended for ELEXIR testing, although we've dropped that.",
+    "Balanced two-level fully-ordered and-rules.",
     Seq(
       Seq('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i')
     )

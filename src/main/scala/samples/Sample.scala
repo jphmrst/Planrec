@@ -12,7 +12,6 @@ package org.maraist.planrec.samples
 import org.maraist.graphviz.GraphStyle
 import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
-import org.maraist.fa.styles.EdgeAnnotatedGraphStyle
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
 import org.maraist.planrec.yr.table.{HandleFinder,Table}
