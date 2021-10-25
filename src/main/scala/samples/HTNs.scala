@@ -335,25 +335,27 @@ object HTNs {
     )
   )
 
-  val b3 = Sample(
-    "b3",
-    HTNLib(
-      Set(
-        All('H', IndexedSeq('A', 'B', 'C'), Array((0,2))),
-        Act('A', 'a'),
-        Act('B', 'b'),
-        Act('C', 'c')
-      ),
-      Seq('H'),
-      Seq(1.0)
-    ),
-    "In this library, completing one of two interleavable subgoals triggers a third.",
-    Seq(
-      Seq('a', 'b', 'c'),
-      Seq('a', 'a', 'b', 'c'),
-      Seq('b', 'a', 'c')
-    )
-  )
+// // TODO Removing for now --- raises runtime error
+//
+//   val b3 = Sample(
+//     "b3",
+//     HTNLib(
+//       Set(
+//         All('H', IndexedSeq('A', 'B', 'C'), Array((0,2))),
+//         Act('A', 'a'),
+//         Act('B', 'b'),
+//         Act('C', 'c')
+//       ),
+//       Seq('H'),
+//       Seq(1.0)
+//     ),
+//     "In this library, completing one of two interleavable subgoals triggers a third.",
+//     Seq(
+//       Seq('a', 'b', 'c'),
+//       Seq('a', 'a', 'b', 'c'),
+//       Seq('b', 'a', 'c')
+//     )
+//   )
 
   val b4 = Sample(
     "b4",
