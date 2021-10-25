@@ -170,7 +170,7 @@ case class Act[T, H, S](val goal: T, val action: T)
   def toLaTeX(doc: LaTeXdoc):
       Unit = {
     termRender.toLaTeX(doc, goal)
-    var sep = " & ::= "
+    doc ++= " & ::= "
     termRender.toLaTeX(doc, action)
   }
 }

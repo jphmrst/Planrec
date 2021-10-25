@@ -11,17 +11,18 @@
 package org.maraist.planrec.yr.table
 import org.maraist.graphviz.Graphable
 import org.maraist.fa.styles.EdgeAnnotatedAutomatonStyle
+import org.maraist.fa.traits.EdgeAnnotatedDFA
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
 
 class StyleNFA[T, H, S](id: String = "")
 
-extends EdgeAnnotatedAutomatonStyle[Node[T, H, S], H, NfaAnnotation[T, H, S]](
+extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
   id = id,
 
-  finalNodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H, ?])
+  finalNodeShape = (s: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?])
     => "box3d",
 
-  nodeShape = (s: Node[T, H, S], _: Graphable[Node[T, H, S], H, ?])
+  nodeShape = (s: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?])
     => s match {
       case _: Item[_, _, _] => "rectangle"
       case _: Ind[_, _, _]  => "rectangle"
@@ -29,8 +30,8 @@ extends EdgeAnnotatedAutomatonStyle[Node[T, H, S], H, NfaAnnotation[T, H, S]](
     },
 
   edgeLabel = (
-    t: H, s0: Node[T, H, S], s1: Node[T, H, S],
-    graph: Graphable[Node[T, H, S], H, ?]
+    t: H, s0: HState[T, H, S], s1: HState[T, H, S],
+    graph: Graphable[HState[T, H, S], H, ?]
   ) => t.toString + (graph match {
     case nfa: NondetHandleFinder[T, H, S] => {
       nfa.annotation(s0, t, s1) match {
@@ -51,7 +52,7 @@ extends EdgeAnnotatedAutomatonStyle[Node[T, H, S], H, NfaAnnotation[T, H, S]](
     }
   }),
 
-  nodeLabel = (node: Node[T, H, S], _: Graphable[Node[T, H, S], H, ?])
+  nodeLabel = (node: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?])
     => nodeDOT(node)
 )
 
@@ -63,24 +64,27 @@ given yrNfaGraphStyle[T, H, S]: StyleNFA[T, H, S] =
 class StyleDFA[T, H, S](id: String = "")
 
 extends EdgeAnnotatedAutomatonStyle[
-  Set[Node[T, H, S]], H, Set[NfaAnnotation[T, H, S]]
+  Set[HState[T, H, S]], H, Set[NfaAnnotation[T, H, S]]
 ](
 
   id = id,
 
   finalNodeShape = (
-    s: Set[Node[T, H, S]],
-    _: Graphable[Set[Node[T, H, S]], H, ?]
+    s: Set[HState[T, H, S]],
+    _: Graphable[Set[HState[T, H, S]], H, ?]
   ) => "box3d",
 
-  nodeShape = (s: Set[Node[T, H, S]], _: Graphable[Set[Node[T, H, S]], H, ?])
+  nodeShape = (s: Set[HState[T, H, S]], _: Graphable[Set[HState[T, H, S]], H, ?])
     => "rectangle",
 
   edgeLabel = (
-    t: H, s0: Set[Node[T, H, S]], s1: Set[Node[T, H, S]],
-    graph: Graphable[Set[Node[T, H, S]], H, ?]
+    t: H, s0: Set[HState[T, H, S]], s1: Set[HState[T, H, S]],
+    graph: Graphable[Set[HState[T, H, S]], H, ?]
   ) => t.toString + (graph match {
-    case dfa: HandleFinder[T, H, S] => {
+    case dfa: EdgeAnnotatedDFA[
+      Set[HState[T, H, S]], H, Set[NfaAnnotation[T, H, S]],
+      EdgeAnnotatedAutomatonStyle
+    ] => {
       dfa.annotation(s0, t) match {
         case Some(annSet) => {
           val sb = new StringBuilder
@@ -107,8 +111,8 @@ extends EdgeAnnotatedAutomatonStyle[
   }),
 
   nodeLabel = (
-    nodeSet: Set[Node[T, H, S]],
-    graph: Graphable[Set[Node[T, H, S]], H, ?]
+    nodeSet: Set[HState[T, H, S]],
+    graph: Graphable[Set[HState[T, H, S]], H, ?]
   ) => {
     val sb = new StringBuilder
     var sep = ""
@@ -126,7 +130,7 @@ given yrDfaGraphStyle[T, H, S]: StyleDFA[T, H, S] =
 
 // =================================================================
 
-def nodeDOT[T, H, S](node: Node[T, H, S]): String = node match {
+def nodeDOT[T, H, S](node: HState[T, H, S]): String = node match {
   case AllItem(All(goal, subgoals, _), ready) => {
     val sb = new StringBuilder
     sb ++= goal.toString()

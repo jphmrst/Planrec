@@ -14,7 +14,7 @@ import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
-import org.maraist.planrec.yr.table.{HandleFinder,Table}
+import org.maraist.planrec.yr.table.HandleFinder
 
 trait Sample {
   type Term
@@ -60,7 +60,10 @@ object Sample extends Sampler {
 
   def addSamples(guide: LaTeXdoc): FilesCleaner = {
     val cleaner = newCleaner()
-    for (sample <- samples) { addSample(guide, sample, cleaner) }
+    for (sample <- samples) {
+      println(s"*** ${sample.name}") ////////////////////////////////////////
+      addSample(guide, sample, cleaner)
+    }
     cleaner
   }
 
@@ -85,15 +88,23 @@ object Sample extends Sampler {
     import org.maraist.planrec.yr.table.Node
     given TermImpl[T, H, S] = sample.termImpl
 
-    val table = Table(library)
     guide ++= "\\subsection{YR}\n"
-    guide ++= "\\subsection*{NFA}\n"
-    val nfa = HandleFinder.libToNFA(library)
-    // println("\nFrom Sample for NFA " + tag + ":")
-    graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
-    guide ++= "\\subsection*{DFA}\n"
-    // println("\nFrom Sample for DFA " + tag + ":")
-    graphable(guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth)
+
+    guide ++= "\\subsection*{NFA builder}\n"
+    val nfaBuilder = new HandleFinder[T, H, S]
+    nfaBuilder.libToNFA(library)
+    graphable(guide, cleaner, nfaBuilder, tag+"NFA builder", sample.nfaWidth)
+
+    // guide ++= "\\subsection*{NFA}\n"
+    // val nfa = HandleFinder.libToNFA(library)
+    // // println("\nFrom Sample for NFA " + tag + ":")
+    // graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
+
+    // guide ++= "\\subsection*{DFA}\n"
+    // // println("\nFrom Sample for DFA " + tag + ":")
+    // graphable(guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth)
+
+    // val table = Table(library)
   }
 
   @main def writeSamples: Unit = {

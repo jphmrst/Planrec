@@ -11,10 +11,14 @@
 package org.maraist.planrec.yr.table
 import scala.collection.mutable.Queue
 import org.maraist.graphviz.Graphable
-import org.maraist.fa.{
-  EdgeAnnotatedNFA, EdgeAnnotatedNFABuilder, EdgeAnnotatedDFA}
+import org.maraist.fa.EdgeAnnotatedNFABuilder.Completer
+import org.maraist.fa.{EdgeAnnotatedNFA, EdgeAnnotatedDFA}
+import org.maraist.fa.full.EdgeAnnotatedNFABuilder
+import org.maraist.fa.styles.EdgeAnnotatedAutomatonStyle
+import org.maraist.fa.elements.EdgeAnnotatedNFAelements
 import org.maraist.fa.util
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
+import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.*
 import org.maraist.planrec.terms.TermImpl
 import org.maraist.planrec.terms.Term.termHead
@@ -22,62 +26,31 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
 
-given Combiner[T, H, S]: util.EdgeAnnotationCombiner[
+class HandleFinder[T, H, S] extends EdgeAnnotatedNFABuilder[
+  HState[T, H, S], H,
+  NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]],
+  Set,
+  EdgeAnnotatedDFA, EdgeAnnotatedNFA,
+  EdgeAnnotatedNFAelements[HState[T, H, S], H, NfaAnnotation[T, H, S]],
+  EdgeAnnotatedAutomatonStyle,
+  EdgeAnnotatedAutomatonStyle
+]
+
+with Completer[
+  HState[T, H, S], H,
   NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
-] =
-  util.EdgeAnnotationCombiner.singleSetCombiner[NfaAnnotation[T, H, S]]
+] {
 
-case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 
-case class NfaAnnotation[T, H, S](indirects: List[H])
-
-type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
-
-type HandleFinder[T, H, S] =
-  EdgeAnnotatedDFA[
-    Set[Node[T, H, S]],
-    H,
-    Set[NfaAnnotation[T, H, S]]
-  ]
-
-type NondetHandleFinder[T, H, S] =
-  EdgeAnnotatedNFA[
-    Node[T, H, S], H,
-    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
-  ]
-
-type NondetHandleFinderBuilder[T, H, S] =
-  EdgeAnnotatedNFABuilder[
-    Node[T, H, S], H,
-    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
-  ]
-
-type NondetHandleFinderBuilderConcrete[T, H, S] =
-  EdgeAnnotatedNFABuilder[
-    Node[T, H, S],
-    H,
-    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
-  ]
-
-type ItemsQueue[T, H, S] =
-  Queue[(Node[T, H, S], Set[Int], Option[Int], AllItem[T, H, S])]
-
-object HandleFinder {
-  import org.maraist.fa.util.EdgeAnnotationCombiner.singleSetCombiner
-  import org.maraist.planrec.rules.HTNLib
-
-  def libToNFA[T, H, S](library: HTNLib[T, H, S])(using TermImpl[T, H, S]):
-      NondetHandleFinder[T, H, S] = {
-    val nfaBuilder =
-      new NondetHandleFinderBuilderConcrete[T, H, S](
-        using singleSetCombiner[NfaAnnotation[T, H, S]])
+  def libToNFA(library: HTNLib[T, H, S])(using TermImpl[T, H, S]):
+      Unit = {
 
     // First add all of the rule heads as stations.
     for (head <- library.goals.map(_.termHead))
       do {
         if library.top.contains(head)
-        then nfaBuilder.addInitialState(head)
-        else nfaBuilder.addState(head)
+        then addInitialState(head)
+        else addState(head)
       }
 
     // Queue for all of the items which need to be processed.
@@ -90,8 +63,8 @@ object HandleFinder {
 
       // Add the rule station and initial item to the NFA, with an
       // epsilon transition from the station to that item.
-      nfaBuilder.addState(initial)
-      nfaBuilder.addETransition(ruleGoalHead, initial)
+      addState(initial)
+      addETransition(ruleGoalHead, initial)
 
       // For One- and Act-rules, we can just add the related items
       // right away.  Otherwise for All-rules, we queue the initial
@@ -100,18 +73,18 @@ object HandleFinder {
       rule match {
         case r @ One(_, subgoals, probs) => { // TODO Do something with probs
           val finalItem = OneItem(r, true)
-          nfaBuilder.addFinalState(finalItem)
+          addFinalState(finalItem)
           // OK to use triggers instead of actionHints here because
           // they all lead to the finalItem.
           for (t <- initial.triggers)
-            do nfaBuilder.addTransition(initial, t, finalItem)
+            do addTransition(initial, t, finalItem)
           for (s <- subgoals)
-            do nfaBuilder.addETransition(initial, s.termHead)
+            do addETransition(initial, s.termHead)
         }
         case r: Act[T, H, S] => {
           val finalItem = ActItem(r, true)
-          nfaBuilder.addFinalState(finalItem)
-          nfaBuilder.addTransition(initial, r.action.termHead, finalItem)
+          addFinalState(finalItem)
+          addTransition(initial, r.action.termHead, finalItem)
         }
         case r: All[T, H, S] => {
           initial match {
@@ -121,7 +94,7 @@ object HandleFinder {
               // If not multi, then add annotations to the epsilon
               // transition for the subgoals.
               if isMulti then
-                nfaBuilder.setEAnnotation(
+                setEAnnotation(
                   ruleGoalHead, initial, NfaAnnotation(List.from(i.triggers))
                 )
 
@@ -141,9 +114,7 @@ object HandleFinder {
     while (!(itemsQueue.isEmpty))
       itemsQueue.dequeue match
         case (prev, par, trans, item) =>
-          encodeItemTransition(prev, par, trans, item, nfaBuilder, itemsQueue)
-
-    nfaBuilder.result
+          encodeItemTransition(prev, par, trans, item, itemsQueue)
   }
 
   /** Add the necessary components to an [[NDFABuilder]] for the
@@ -156,19 +127,18 @@ object HandleFinder {
     * Additional items pairs may be pushed to the `queue`, but no
     * pairs should be read from it.
     */
-  def encodeItemTransition[T, H, S](
-    prev: Node[T, H, S],
+  def encodeItemTransition(
+    prev: HState[T, H, S],
     par: Set[Int],
     transIdx: Option[Int],
     nextItem: AllItem[T, H, S],
-    nfa: NondetHandleFinderBuilder[T, H, S],
     queue: ItemsQueue[T, H, S])(
     using TermImpl[T, H, S]):
       Unit = {
     val rule = nextItem.rule
 
     // If the item is final, mark it as a final state.
-    if (nextItem.isFinal) then nfa.addFinalState(nextItem)
+    if (nextItem.isFinal) then addFinalState(nextItem)
 
     // Work out the current spawned tasks _minus_ any in the
     // transition.
@@ -189,11 +159,11 @@ object HandleFinder {
     // may need to annotate it.
     if ((wasMulti && newInNextItem.size > 0) || newInNextItem.size > 1)
       then transIdx match {
-        case None => nfa.setEAnnotation(
+        case None => setEAnnotation(
           prev, nextItem,
           NfaAnnotation(List.from(newInNextItem.map(rule.subgoals(_).termHead)))
         )
-        case Some(idx) => nfa.setAnnotation(
+        case Some(idx) => setAnnotation(
           prev, rule.subgoals(idx).termHead, nextItem,
           NfaAnnotation(
             List.from(newInNextItem.map((i) => rule.subgoals(i).termHead)))
@@ -215,7 +185,7 @@ object HandleFinder {
     // epsilon-transition to its station.
     if (!wasMulti && newInNextItem.size <= 1) then {
       newInNextItem.map(
-        (idx) => nfa.addETransition(nextItem, rule.subgoals(idx).termHead))
+        (idx) => addETransition(nextItem, rule.subgoals(idx).termHead))
     }
 
     // We have (at least) a new queue entry for each subgoal which is
@@ -230,7 +200,7 @@ object HandleFinder {
         case None => { }
         case Some(afterNextItem) => {
           // Add the transition
-          nfa.addTransition(nextItem, newTrans, afterNextItem)
+          addTransition(nextItem, newTrans, afterNextItem)
 
           // Add a queue entry
           queue.enqueue((nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
