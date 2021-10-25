@@ -33,7 +33,7 @@ extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
     t: H, s0: HState[T, H, S], s1: HState[T, H, S],
     graph: Graphable[HState[T, H, S], H, ?]
   ) => t.toString + (graph match {
-    case nfa: NondetHandleFinder[T, H, S] => {
+    case nfa: HandleFinder[T, H, S] => {
       nfa.annotation(s0, t, s1) match {
         case Some(NfaAnnotation(indirs)) => {
           val sb = new StringBuilder

@@ -35,11 +35,5 @@ type HState[T, H, S] = Item[T, H, S] | H
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
-type NondetHandleFinder[T, H, S] =
-  EdgeAnnotatedNFA[
-    HState[T, H, S], H,
-    NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
-  ]
-
 type ItemsQueue[T, H, S] =
   Queue[(HState[T, H, S], Set[Int], Option[Int], AllItem[T, H, S])]
