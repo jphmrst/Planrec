@@ -124,6 +124,21 @@ case class AllItem[T, H, S](val rule: All[T, H, S], val ready: Set[Int])
       do builder += TriggerMatchIndex(i)
     builder.result()
   }
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb ++= "[[ "
+    sb ++= rule.toString
+    sb ++= " --- {"
+    var sep = ""
+    for (r <- ready) do {
+      sb ++= sep
+      sb ++= rule.subgoals(r).toString
+      sep = ","
+    }
+    sb ++= "} ]]"
+    sb.result
+  }
 }
 
 /** Position of an item in a [[org.maraist.planrec.rules.One One]]
@@ -158,6 +173,16 @@ case class OneItem[T, H, S](val rule: One[T, H, S], val isFinal: Boolean)
       i <- 0 until rule.subgoals.size;
       if rule.subgoals(i).termHead.equals(trigger)
     ) yield TriggerMatchIndex(i)
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb ++= "[[ "
+    sb ++= rule.toString
+    sb ++= " --- "
+    sb ++= (if isFinal then "after" else "before")
+    sb ++= " ]]"
+    sb.result
+  }
 }
 
 
@@ -171,6 +196,7 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
     case that: ActItem[?, ?, ?] => rule == that.rule && isFinal == that.isFinal
     case _ => false
   }
+
   override def hashCode(): Int =
     if isFinal then 2 * rule.hashCode() else rule.hashCode()
 
@@ -187,6 +213,16 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
   def applications(trigger: H): Seq[TriggerHint] =
     if isFinal || !rule.action.termHead.equals(trigger) then Seq()
     else Seq(NoHint())
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb ++= "[[ "
+    sb ++= rule.toString
+    sb ++= " --- "
+    sb ++= (if isFinal then "after" else "before")
+    sb ++= " ]]"
+    sb.result
+  }
 }
 
 

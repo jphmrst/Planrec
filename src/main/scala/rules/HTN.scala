@@ -84,6 +84,32 @@ case class All[T, H, S](
     }
     doc ++= fin
   }
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb ++= "All("
+    sb ++= goal.toString
+    sb ++= " ::="
+    for (sg <- subgoals) do {
+      sb ++= " "
+      sb ++= sg.toString
+    }
+    if (order.size == 0)
+      then sb ++= " unordered"
+    else {
+      var sep = " | "
+      for ((fr, to) <- order)
+        do {
+          sb ++= sep
+          sb ++= subgoals(fr).toString
+          sb ++= "<"
+          sb ++= subgoals(to).toString
+          sep = ", "
+        }
+    }
+    sb ++= ")"
+    sb.result
+  }
 }
 
 /**
@@ -153,6 +179,24 @@ case class One[T, H, S]
       sep = "$|$"
     }
   }
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb ++= "One("
+    sb ++= goal.toString
+    sb ++= " ::="
+    var sep = " "
+    for (i <- 0 until subgoals.length) do {
+      sb ++= sep
+      sb ++= subgoals(i).toString
+      sb ++= " (@"
+      sb ++= subgoalProbs(i).toString
+      sb ++= ")"
+      sep = " | "
+    }
+    sb ++= ")"
+    sb.result
+  }
 }
 
 /** A "terminal rule," indicating that a goal corresponds to a simple
@@ -172,6 +216,16 @@ case class Act[T, H, S](val goal: T, val action: T)
     termRender.toLaTeX(doc, goal)
     doc ++= " & ::= "
     termRender.toLaTeX(doc, action)
+  }
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb ++= "Act("
+    sb ++= goal.toString
+    sb ++= " ::= "
+    sb ++= action.toString
+    sb ++= ")"
+    sb.result
   }
 }
 

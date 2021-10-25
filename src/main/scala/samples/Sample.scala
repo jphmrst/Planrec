@@ -95,6 +95,16 @@ object Sample extends Sampler {
     nfaBuilder.libToNFA(library)
     graphable(guide, cleaner, nfaBuilder, tag+"NFA builder", sample.nfaWidth)
 
+    guide ++= "\\begin{verbatim}\n"
+    val baos = new java.io.ByteArrayOutputStream
+    val utf8 =java.nio.charset.StandardCharsets.UTF_8.name()
+    val ps = new java.io.PrintStream(baos, true, utf8)
+    nfaBuilder.dump(ps)
+    ps.close
+    guide ++= baos.toString(utf8);
+    baos.close
+    guide ++= "\\end{verbatim}\n"
+
     // guide ++= "\\subsection*{NFA}\n"
     // val nfa = HandleFinder.libToNFA(library)
     // // println("\nFrom Sample for NFA " + tag + ":")

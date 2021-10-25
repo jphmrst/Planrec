@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % "3.2.9",
   "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   "org.maraist" %% "scala-latex" % "2.0.0",
-//  "org.maraist" %% "scala-automata" % "0.2.0",
+//  "org.maraist" %% "scala-automata" % "0.2.1",
   "org.maraist" %% "misc-utils" % "1.0.1"
 )
 

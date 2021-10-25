@@ -14,7 +14,7 @@ import org.maraist.graphviz.Graphable
 import org.maraist.fa.EdgeAnnotatedNFABuilder.Completer
 import org.maraist.fa.{EdgeAnnotatedNFA, EdgeAnnotatedDFA}
 import org.maraist.fa.full.EdgeAnnotatedNFABuilder
-import org.maraist.fa.styles.EdgeAnnotatedAutomatonStyle
+import org.maraist.fa.styles.{EdgeAnnotatedAutomatonStyle}
 import org.maraist.fa.elements.EdgeAnnotatedNFAelements
 import org.maraist.fa.util
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
@@ -207,5 +207,38 @@ with Completer[
         }
       }
     }
+  }
+
+  // =================================================================
+  // Draw the extra edges implied by annotations
+  // =================================================================
+
+  override protected def plotPresentEdge(
+    sb: StringBuilder,
+    style: EdgeAnnotatedAutomatonStyle[
+      HState[T, H, S], H, NfaAnnotation[T, H, S]],
+    stateList: IndexedSeq[HState[T, H, S]],
+    si0: Int, s0: HState[T, H, S],
+    ti0: Int, t: H,
+    si1: Int, s1: HState[T, H, S]):
+      Unit = {
+    super.plotPresentEdge(sb, style, stateList, si0, s0, ti0, t, si1, s1)
+    annotation(s0, t, s1) match {
+      case None => { }
+      case Some(NfaAnnotation(indirects)) => {
+        for (h <- indirects) do plotAnnotationEdge(sb, stateList, si1, h)
+      }
+    }
+  }
+
+  def plotAnnotationEdge(
+    sb: StringBuilder, stateList: IndexedSeq[HState[T, H, S]],
+    fromIndex: Int, toStation: H
+  ): Unit = {
+    sb ++= "\tV"
+    sb ++= fromIndex.toString
+    sb ++= " -> V"
+    sb ++= stateList.indexOf(toStation).toString
+    sb ++= " [arrowhead = none, style = dotted]\n"
   }
 }
