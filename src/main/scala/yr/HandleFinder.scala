@@ -138,7 +138,10 @@ with Completer[
     val rule = nextItem.rule
 
     // If the item is final, mark it as a final state.
-    if (nextItem.isFinal) then addFinalState(nextItem)
+    if (nextItem.isFinal)
+      then addFinalState(nextItem)
+    else if !isState(nextItem)
+    then addState(nextItem)
 
     // Work out the current spawned tasks _minus_ any in the
     // transition.
@@ -218,11 +221,13 @@ with Completer[
     style: EdgeAnnotatedAutomatonStyle[
       HState[T, H, S], H, NfaAnnotation[T, H, S]],
     stateList: IndexedSeq[HState[T, H, S]],
+    stateMap: Map[HState[T, H, S], Int],
     si0: Int, s0: HState[T, H, S],
     ti0: Int, t: H,
     si1: Int, s1: HState[T, H, S]):
       Unit = {
-    super.plotPresentEdge(sb, style, stateList, si0, s0, ti0, t, si1, s1)
+    super.plotPresentEdge(
+      sb, style, stateList, stateMap, si0, s0, ti0, t, si1, s1)
     annotation(s0, t, s1) match {
       case None => { }
       case Some(NfaAnnotation(indirects)) => {
