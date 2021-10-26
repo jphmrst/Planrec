@@ -32,35 +32,38 @@ extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
       case _ => "circle"
     },
 
-  edgeLabel = (
-    t: H, s0: HState[T, H, S], s1: HState[T, H, S],
-    graph: Graphable[HState[T, H, S], H, ?]
-  ) => t.toString + (graph match {
-    case nfa: HandleFinder[T, H, S] => {
-      nfa.annotation(s0, t, s1) match {
-        case Some(NfaAnnotation(indirs)) => {
-          val sb = new StringBuilder
-          sb ++= " {"
-          var sep = ""
-          for (ind <- indirs) do {
-            sb ++= sep
-            sb ++= ind.toString()
-            sep = ", "
-          }
-          sb ++= "}"
-          sb.toString()
-        }
-        case None => ""
-      }
-    }
-  }),
+  annotationLabel = (
+    a: NfaAnnotation[T, H, S], t: H, s0: HState[T, H, S], s1: HState[T, H, S]
+  ) => annotationToLaTeX(a),
 
-  nodeLabel = (node: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?])
-    => nodeDOT(node)
+  eAnnotationLabel = (
+    a: NfaAnnotation[T, H, S],
+    s0: HState[T, H, S],
+    s1: HState[T, H, S]) => annotationToLaTeX(a),
+
+  nodeLabel = (node: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?]) =>
+  nodeDOT(node)
 )
 
 given yrNfaGraphStyle[T, H, S]: StyleNFA[T, H, S] =
   new StyleNFA[T, H, S](id = "yrNfaGraphStyle")
+
+private[yr] def annotationToLaTeX[T, H, S](ann: NfaAnnotation[T, H, S]):
+    String = ann match {
+  case NfaAnnotation(indirs) => {
+    val sb = new StringBuilder
+    sb ++= " {"
+    var sep = ""
+    for (ind <- indirs) do {
+      sb ++= sep
+      sb ++= ind.toString()
+      sep = ", "
+    }
+    sb ++= "}"
+    sb.toString()
+  }
+}
+
 
 // =================================================================
 
@@ -79,39 +82,6 @@ extends EdgeAnnotatedAutomatonStyle[
 
   nodeShape = (s: Set[HState[T, H, S]], _: Graphable[Set[HState[T, H, S]], H, ?])
     => "rectangle",
-
-  edgeLabel = (
-    t: H, s0: Set[HState[T, H, S]], s1: Set[HState[T, H, S]],
-    graph: Graphable[Set[HState[T, H, S]], H, ?]
-  ) => t.toString + (graph match {
-    case dfa: EdgeAnnotatedDFA[
-      Set[HState[T, H, S]], H, Set[NfaAnnotation[T, H, S]],
-      EdgeAnnotatedAutomatonStyle
-    ] => {
-      dfa.annotation(s0, t) match {
-        case Some(annSet) => {
-          val sb = new StringBuilder
-          var sep2 = ""
-          for (ann <- annSet) do ann match {
-            case NfaAnnotation(indirs) => {
-              sb ++= sep2
-              sb ++= " {"
-              var sep = ""
-              for (ind <- indirs) do {
-                sb ++= sep
-                sb ++= ind.toString()
-                sep = ", "
-              }
-              sb ++= "}"
-              sep2 = "; "
-            }
-          }
-          sb.toString()
-        }
-        case None => ""
-      }
-    }
-  }),
 
   nodeLabel = (
     nodeSet: Set[HState[T, H, S]],
