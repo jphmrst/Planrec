@@ -250,6 +250,25 @@ with Completer[
     }
   }
 
+  override protected def plotPresentEdge(
+    sb: StringBuilder,
+    style: EdgeAnnotatedAutomatonStyle[
+      HState[T, H, S], H, NfaAnnotation[T, H, S]],
+    stateList: IndexedSeq[HState[T, H, S]],
+    stateMap: Map[HState[T, H, S], Int],
+    si0: Int, s0: HState[T, H, S],
+    si1: Int, s1: HState[T, H, S]):
+      Unit = {
+    super.plotPresentEdge(
+      sb, style, stateList, stateMap, si0, s0, si1, s1)
+    annotation(s0, s1) match {
+      case None => { }
+      case Some(NfaAnnotation(indirects)) => {
+        for (h <- indirects) do plotAnnotationEdge(sb, stateList, si1, h)
+      }
+    }
+  }
+
   def plotAnnotationEdge(
     sb: StringBuilder, stateList: IndexedSeq[HState[T, H, S]],
     fromIndex: Int, toStation: H
