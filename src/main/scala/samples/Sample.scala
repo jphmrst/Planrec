@@ -105,14 +105,15 @@ object Sample extends Sampler {
     // baos.close
     // guide ++= "\\end{verbatim}\n"
 
-    // guide ++= "\\subsection*{NFA}\n"
-    // val nfa = nfaBuilder.result
-    // // println("\nFrom Sample for NFA " + tag + ":")
-    // graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
+    guide ++= "\\subsection*{NFA}\n"
+    val nfa = nfaBuilder.result
+    // println("\nFrom Sample for NFA " + tag + ":")
+    graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
 
-    // guide ++= "\\subsection*{DFA}\n"
-    // // println("\nFrom Sample for DFA " + tag + ":")
-    // graphable(guide, cleaner, table.dfa, tag+"DFA", sample.dfaWidth)
+    guide ++= "\\subsection*{DFA}\n"
+    val dfa = nfa.toDFA
+    // println("\nFrom Sample for DFA " + tag + ":")
+    graphable(guide, cleaner, dfa, tag+"DFA", sample.dfaWidth)
 
     // val table = Table(library)
   }

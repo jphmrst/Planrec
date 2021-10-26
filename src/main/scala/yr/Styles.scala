@@ -10,6 +10,7 @@
 
 package org.maraist.planrec.yr.table
 import org.maraist.graphviz.Graphable
+import org.maraist.fa
 import org.maraist.fa.styles.EdgeAnnotatedAutomatonStyle
 import org.maraist.fa.traits.EdgeAnnotatedDFA
 import org.maraist.planrec.rules.{All,One,Act,TriggerHint,TriggerMatchIndex}
@@ -41,8 +42,8 @@ extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
     s0: HState[T, H, S],
     s1: HState[T, H, S]) => annotationToLaTeX(a),
 
-  nodeLabel = (node: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?]) =>
-  nodeDOT(node)
+  nodeLabel = (
+    n: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?]) => nodeDOT(n)
 )
 
 given yrNfaGraphStyle[T, H, S]: StyleNFA[T, H, S] =
@@ -75,6 +76,9 @@ extends EdgeAnnotatedAutomatonStyle[
 
   id = id,
 
+  // TODO remove --- for debugging
+  keepDOT = true,
+
   finalNodeShape = (
     s: Set[HState[T, H, S]],
     _: Graphable[Set[HState[T, H, S]], H, ?]
@@ -83,19 +87,20 @@ extends EdgeAnnotatedAutomatonStyle[
   nodeShape = (s: Set[HState[T, H, S]], _: Graphable[Set[HState[T, H, S]], H, ?])
     => "rectangle",
 
+  annotationLabel = (
+    anns: Set[NfaAnnotation[T, H, S]],
+    t: H, s0: Set[HState[T, H, S]], s1: Set[HState[T, H, S]]
+  ) => "{" + anns.map(annotationToLaTeX).mkString(", ") + "}",
+
+  eAnnotationLabel = (
+    anns: Set[NfaAnnotation[T, H, S]],
+    s0: Set[HState[T, H, S]],
+    s1: Set[HState[T, H, S]]
+  ) => "{" + anns.map(annotationToLaTeX).mkString(", ") + "}",
+
   nodeLabel = (
-    nodeSet: Set[HState[T, H, S]],
-    graph: Graphable[Set[HState[T, H, S]], H, ?]
-  ) => {
-    val sb = new StringBuilder
-    var sep = ""
-    for (node <- nodeSet) do {
-      sb ++= sep
-      sb ++= nodeDOT(node)
-      sep = "<br/>"
-    }
-    sb.toString()
-  }
+    ns: Set[HState[T, H, S]], _: Graphable[Set[HState[T, H, S]], H, ?]
+  ) => "{" + ns.map(nodeDOT).mkString(", ") + "}"
 )
 
 given yrDfaGraphStyle[T, H, S]: StyleDFA[T, H, S] =
