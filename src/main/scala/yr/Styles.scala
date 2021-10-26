@@ -19,6 +19,9 @@ class StyleNFA[T, H, S](id: String = "")
 extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
   id = id,
 
+  // TODO remove --- for debugging
+  keepDOT = true,
+
   finalNodeShape = (s: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?])
     => "box3d",
 

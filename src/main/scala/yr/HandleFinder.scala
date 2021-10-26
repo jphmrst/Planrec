@@ -46,12 +46,17 @@ with Completer[
       Unit = {
 
     // First add all of the rule heads as stations.
-    for (head <- library.goals.map(_.termHead))
-      do {
+    for (rule <- library.rules) do {
+      val head = rule.goal.termHead
+
+      // Add the rule goal head as a station to the NFA if it is not
+      // already present.
+      if !isState(head) then {
         if library.top.contains(head)
         then addInitialState(head)
         else addState(head)
       }
+    }
 
     // Queue for all of the items which need to be processed.
     val itemsQueue = new ItemsQueue[T, H, S]
@@ -59,11 +64,11 @@ with Completer[
     // Process each rule, or stage it for processing.
     for (rule <- library.rules) do {
       val ruleGoalHead = rule.goal.termHead
-      val initial = initialItem(rule)
 
       // Add the rule station and initial item to the NFA, with an
       // epsilon transition from the station to that item.
-      addState(initial)
+      val initial = initialItem(rule)
+      if !isState(initial) then addState(initial)
       addETransition(ruleGoalHead, initial)
 
       // For One- and Act-rules, we can just add the related items
@@ -137,11 +142,8 @@ with Completer[
       Unit = {
     val rule = nextItem.rule
 
-    // If the item is final, mark it as a final state.
-    if (nextItem.isFinal)
-      then addFinalState(nextItem)
-    else if !isState(nextItem)
-    then addState(nextItem)
+    // Make sure the successor item is in the NFA already
+    ensureItemAdded(nextItem)
 
     // Work out the current spawned tasks _minus_ any in the
     // transition.
@@ -202,15 +204,27 @@ with Completer[
       nextItem.applyIdx(newTransIdx) match {
         case None => { }
         case Some(afterNextItem) => {
+
+          // Make sure the item is a state in the NFA
+          ensureItemAdded(afterNextItem)
+
           // Add the transition
           addTransition(nextItem, newTrans, afterNextItem)
 
           // Add a queue entry
-          queue.enqueue((nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
+          queue.enqueue((
+            nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
         }
       }
     }
   }
+
+  def ensureItemAdded(item: AllItem[T, H, S]): Unit =
+    if !isState(item) then {
+      if (item.isFinal)
+        then addFinalState(item)
+      else addState(item)
+    }
 
   // =================================================================
   // Draw the extra edges implied by annotations
