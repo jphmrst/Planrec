@@ -8,7 +8,7 @@
 // implied, for NON-COMMERCIAL use.  See the License for the specific
 // language governing permissions and limitations under the License.
 
-package org.maraist.planrec.yr.table
+package org.maraist.planrec.yr
 import org.maraist.graphviz.Graphable
 import org.maraist.fa
 import org.maraist.fa.styles.EdgeAnnotatedAutomatonStyle
@@ -35,12 +35,12 @@ extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
 
   annotationLabel = (
     a: NfaAnnotation[T, H, S], t: H, s0: HState[T, H, S], s1: HState[T, H, S]
-  ) => annotationToLaTeX(a),
+  ) => nfaAnnotationToLaTeX(a),
 
   eAnnotationLabel = (
     a: NfaAnnotation[T, H, S],
     s0: HState[T, H, S],
-    s1: HState[T, H, S]) => annotationToLaTeX(a),
+    s1: HState[T, H, S]) => nfaAnnotationToLaTeX(a),
 
   nodeLabel = (
     n: HState[T, H, S], _: Graphable[HState[T, H, S], H, ?]) => nodeDOT(n)
@@ -49,7 +49,7 @@ extends EdgeAnnotatedAutomatonStyle[HState[T, H, S], H, NfaAnnotation[T, H, S]](
 given yrNfaGraphStyle[T, H, S]: StyleNFA[T, H, S] =
   new StyleNFA[T, H, S](id = "yrNfaGraphStyle")
 
-private[yr] def annotationToLaTeX[T, H, S](ann: NfaAnnotation[T, H, S]):
+private[yr] def nfaAnnotationToLaTeX[T, H, S](ann: NfaAnnotation[T, H, S]):
     String = ann match {
   case NfaAnnotation(indirs) => {
     val sb = new StringBuilder
@@ -65,13 +65,12 @@ private[yr] def annotationToLaTeX[T, H, S](ann: NfaAnnotation[T, H, S]):
   }
 }
 
-
 // =================================================================
 
 class StyleDFA[T, H, S](id: String = "")
 
 extends EdgeAnnotatedAutomatonStyle[
-  Set[HState[T, H, S]], H, Set[NfaAnnotation[T, H, S]]
+  Set[HState[T, H, S]], H, Set[DfaAnnotation[T, H, S]]
 ](
 
   id = id,
@@ -88,23 +87,38 @@ extends EdgeAnnotatedAutomatonStyle[
     => "rectangle",
 
   annotationLabel = (
-    anns: Set[NfaAnnotation[T, H, S]],
+    anns: Set[DfaAnnotation[T, H, S]],
     t: H, s0: Set[HState[T, H, S]], s1: Set[HState[T, H, S]]
-  ) => "{" + anns.map(annotationToLaTeX).mkString(", ") + "}",
+  ) => "{" + anns.map(dfaAnnotationToLaTeX).mkString(", ") + "}",
 
   eAnnotationLabel = (
-    anns: Set[NfaAnnotation[T, H, S]],
+    anns: Set[DfaAnnotation[T, H, S]],
     s0: Set[HState[T, H, S]],
     s1: Set[HState[T, H, S]]
-  ) => "{" + anns.map(annotationToLaTeX).mkString(", ") + "}",
+  ) => "{" + anns.map(dfaAnnotationToLaTeX).mkString(", ") + "}",
 
   nodeLabel = (
     ns: Set[HState[T, H, S]], _: Graphable[Set[HState[T, H, S]], H, ?]
-  ) => "{" + ns.map(nodeDOT).mkString(", ") + "}"
+  ) => ns.map(nodeDOT).mkString("<br/>")
 )
 
 given yrDfaGraphStyle[T, H, S]: StyleDFA[T, H, S] =
   new StyleDFA[T, H, S](id = "yrDfaGraphStyle")
+
+private[yr] def dfaAnnotationToLaTeX[T, H, S](ann: DfaAnnotation[T, H, S]):
+    String = ann match {
+  case DfaAnnotation(indirs) => {
+    val sb = new StringBuilder
+    sb ++= " {"
+    var sep = ""
+    for ((h, ind) <- indirs) do {
+      sb ++= s"$sep<sup>${ind.toString()}</sup>$h"
+      sep = ", "
+    }
+    sb ++= "}"
+    sb.toString()
+  }
+}
 
 // =================================================================
 

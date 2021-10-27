@@ -8,7 +8,7 @@
 // implied, for NON-COMMERCIAL use.  See the License for the specific
 // language governing permissions and limitations under the License.
 
-package org.maraist.planrec.yr.table
+package org.maraist.planrec.yr
 import scala.collection.mutable.Queue
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule

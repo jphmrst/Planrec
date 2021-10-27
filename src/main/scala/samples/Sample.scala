@@ -14,7 +14,7 @@ import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
-import org.maraist.planrec.yr.table.HandleFinder
+import org.maraist.planrec.yr.HandleFinder
 
 trait Sample {
   type Term
@@ -26,8 +26,8 @@ trait Sample {
   def sequences: Seq[Seq[Term]]
   def essay: String = ""
   def termImpl: TermImpl[Term, Head, Subst]
-  def nfaWidth: String = "6in"
-  def dfaWidth: String = "7in"
+  def nfaWidth: String = "7.5in"
+  def dfaWidth: String = "7.5in"
 }
 
 object Sample extends Sampler {
@@ -41,7 +41,9 @@ object Sample extends Sampler {
     lib: HTNLib[T, H, S],
     dsc: String,
     seq: Seq[Seq[T]],
-    txt: String = ""
+    txt: String = "",
+    nw: String = "6in",
+    dw: String = "7in"
   )(using ti: TermImpl[T, H, S]): Sample = {
     val result = new Sample() {
       type Term = T
@@ -53,6 +55,8 @@ object Sample extends Sampler {
       override val sequences: Seq[Seq[T]] = seq
       override val essay: String = txt
       override val termImpl: TermImpl[Term, Head, Subst] = ti
+      override val nfaWidth: String = nw
+      override val dfaWidth: String = dw
     }
     samplesBank += result
     result
@@ -74,26 +78,26 @@ object Sample extends Sampler {
     val library: HTNLib[T, H, S] = sample.library
     val tag = sample.name
 
-    guide ++= "\\section{"
-    if (!sample.desc.equals("")) guide ++= s"${sample.desc} --- "
-    guide ++= s"${sample.name}}\n"
+    guide ++= "\\clearpage\n"
+    guide ++= s"\\section{${sample.name}"
+    if (!sample.desc.equals("")) guide ++= s" --- ${sample.desc}"
+    guide ++= "}\n"
     if (!sample.essay.equals("")) guide ++=/ sample.essay
     guide ++= "\\begin{center}\n"
     library.toLaTeX(guide)
     guide ++= "\\end{center}\n"
     // TODO
 
-    import org.maraist.planrec.yr.table.yrNfaGraphStyle
-    import org.maraist.planrec.yr.table.yrDfaGraphStyle
-    import org.maraist.planrec.yr.table.Node
+    import org.maraist.planrec.yr.Node
     given TermImpl[T, H, S] = sample.termImpl
 
     guide ++= "\\subsection{YR}\n"
 
-    guide ++= "\\subsection*{NFA builder}\n"
+    // guide ++= "\\subsection*{NFA builder}\n"
+    import org.maraist.planrec.yr.yrNfaGraphStyle
     val nfaBuilder = new HandleFinder[T, H, S]
     nfaBuilder.libToNFA(library)
-    graphable(guide, cleaner, nfaBuilder, tag+"NFA builder", sample.nfaWidth)
+    // graphable(guide, cleaner, nfaBuilder, tag+"NFA builder", sample.nfaWidth)
 
     // guide ++= "\\begin{verbatim}\n"
     // val baos = new java.io.ByteArrayOutputStream
@@ -111,6 +115,7 @@ object Sample extends Sampler {
     graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
 
     guide ++= "\\subsection*{DFA}\n"
+    import org.maraist.planrec.yr.yrDfaGraphStyle
     val dfa = nfa.toDFA
     // println("\nFrom Sample for DFA " + tag + ":")
     graphable(guide, cleaner, dfa, tag+"DFA", sample.dfaWidth)

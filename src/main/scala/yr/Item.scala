@@ -8,7 +8,7 @@
 // implied, for NON-COMMERCIAL use.  See the License for the specific
 // language governing permissions and limitations under the License.
 
-package org.maraist.planrec.yr.table
+package org.maraist.planrec.yr
 import scala.collection.mutable.Queue
 import org.maraist.planrec.rules.
   {All, One, Act, TriggerHint, TriggerMatchIndex, NoHint}
@@ -82,7 +82,6 @@ object Item {
 }
 
 /** Items associated with [[org.maraist.planrec.rules.All]] rules.
-  * Corresponds to the [[Item.all]] instance of [[RuleItem]].
   *
   * @param rule Rule associated a particular item instance
   * @param ready The frontier of subgoals which are neither satisfied
@@ -237,10 +236,10 @@ case class ActItem[T, H, S](val rule: Act[T, H, S], val isFinal: Boolean)
   * actions in these rules.
   * @tparam RuleType Type constructor for the plan rules whose items
   * are implemented here.  The argument to this type constructor must
-  * implement [[TermImpl]].
+  * implement [[org.maraist.planrec.terms.TermImpl]].
   * @tparam PosType Type constructor for the position markers used in
   * the items implemented here.  The argument to this type constructor
-  * must implement [[TermImpl]].
+  * must implement [[org.maraist.planrec.terms.TermImpl]].
   */
 sealed trait RuleItem[
   T, H, S,
@@ -283,6 +282,6 @@ object HTN {
   export org.maraist.planrec.rules.{All, One, Act}
   export org.maraist.planrec.rules.HTN.HTNrule
   export org.maraist.planrec.rules.HTNLib
-  export org.maraist.planrec.yr.table.initialItem
-  export org.maraist.planrec.yr.table.{AllItem, OneItem, ActItem}
+  export org.maraist.planrec.yr.initialItem
+  export org.maraist.planrec.yr.{AllItem, OneItem, ActItem}
 }

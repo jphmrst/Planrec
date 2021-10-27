@@ -15,7 +15,7 @@ import org.maraist.planrec.terms.Term.
 
 object RuleItemSamples1 {
   import org.maraist.planrec.rules.{One,All,Act,HTNLib}
-  import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
+  import org.maraist.planrec.yr.{Item, AllItem, OneItem, ActItem}
   import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
 
   val aa = Act[String, String, Unit]("A", "a")

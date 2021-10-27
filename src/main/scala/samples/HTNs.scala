@@ -61,10 +61,12 @@ object HTNs {
       Seq('M'),
       Seq(1.0)
     ),
-    "Taken as a CFG, has a shift-reduce conflict",
+    "shift-reduce",
     Seq(
       Seq('a', 'b', 'c')
-    )
+    ),
+    "Taken as a CFG, has a shift-reduce conflict",
+    dw = "6.5in"
   )
 
   /**
@@ -85,10 +87,13 @@ object HTNs {
       Seq("M"),
       Seq(1.0)
     ),
-    "As CFG, shows a reduce-reduce conflict",
+    "reduce-reduce",
     Seq(
       Seq("a", "b")
-    )
+    ),
+    "As CFG, shows a reduce-reduce conflict",
+    nw = "7.75in",
+    dw = "5in"
   )
 
   val a2 = Sample(
@@ -108,7 +113,9 @@ object HTNs {
     "As CFG, shows a shift-reduce conflict.",
     Seq(
       Seq('a', 'b', 'c')
-    )
+    ),
+    nw = "7.75in",
+    dw = "5in"
   )
 
   val a3 = Sample(
@@ -127,11 +134,13 @@ object HTNs {
       Seq('S'),
       Seq(1.0)
     ),
-    "For basic probability/picks debugging.",
+    "For basic probability/picks debugging",
     Seq(
       Seq('a', 'b'),
       Seq('a', 'b', 'a', 'b')
-    )
+    ),
+    nw = "7.75in",
+    dw = "5.5in"
   )
 
   val a4 = Sample(
@@ -153,7 +162,9 @@ object HTNs {
     Seq(
       Seq('a', 'b'),
       Seq('a', 'b', 'a', 'b')
-    )
+    ),
+    nw = "7.75in",
+    dw = "5.5in"
   )
 
   val a5 = Sample(
@@ -172,10 +183,11 @@ object HTNs {
       Seq('M'),
       Seq(1.0)
     ),
-    "Two-level fully-ordered and-rules.",
+    "Two-level fully-ordered and-rules",
     Seq(
       Seq('a', 'b', 'c', 'd', 'e', 'f')
-    )
+    ),
+    nw = "7.75in"
   )
 
   val a6 = Sample(
@@ -199,7 +211,7 @@ object HTNs {
       Seq('L'),
       Seq(1.0)
     ),
-    "Balanced two-level fully-ordered and-rules.",
+    "balanced two-level fully-ordered and-rules",
     Seq(
       Seq('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i')
     )
@@ -220,11 +232,14 @@ object HTNs {
       Seq('M', 'N'),
       Seq(0.3, 0.7)
     ),
-    "Could be hard to get the disjunction probabilities right.",
+    "",
     Seq(
       Seq('b', 'a'),
       Seq('b')
-    )
+    ),
+    "Could be hard to get the disjunction probabilities right",
+    nw = "7.5in",
+    dw = "4.5in"
   )
 
   // val ap1 = Sample(
@@ -261,7 +276,7 @@ object HTNs {
       Seq('M', 'N'),
       Seq(0.4, 0.6)
     ),
-    "Simple multi-goal",
+    "simple multi-goal",
     Seq(
       Seq('a', 'c'),
       Seq('a', 'b'),
@@ -284,13 +299,14 @@ object HTNs {
       Seq('S'),
       Seq(1.0)
     ),
-    "This library shows a very simple, top-level case of allowing subgoal actions to interleave.",
+    "simple top-level interleaving",
     Seq(
       Seq('a', 'b', 'c', 'd'),
       Seq('a', 'c', 'b', 'd'),
       Seq('a', 'a', 'a', 'b')
     ),
-    "State 0 corresponds to the two-insertion point item $S(M N)$; upon entering State 0 the machine should spawn concurrent stacks capped with States 1 and 2 generated from items $M (A)$ and $N (C)$ respectively. State 0 and its successors are controller states. State 1 heads a sequence of states corresponding to single-intersection point items recognizing first an $A$ and then a $B$, and similarly from State 2 for $N (C)$."
+    "This example shows a very simple, top-level case of allowing subgoal actions to interleave.  State 0 corresponds to the two-insertion point item $S(M N)$; upon entering State 0 the machine should spawn concurrent stacks capped with States 1 and 2 generated from items $M (A)$ and $N (C)$ respectively. State 0 and its successors are controller states. State 1 heads a sequence of states corresponding to single-intersection point items recognizing first an $A$ and then a $B$, and similarly from State 2 for $N (C)$.",
+    dw = "4.5in"
   )
 
   val b1 = Sample(
@@ -307,10 +323,13 @@ object HTNs {
       Seq('U'),
       Seq(1.0)
     ),
-    "This library has interleaving subgoals which share their initial lower-level goal $A$.",
+    "interleaving subgoals with common prefix",
     Seq(
       Seq('a', 'a', 'b', 'c')
-    )
+    ),
+    "This library has interleaving subgoals which share their initial lower-level goal $A$.",
+    nw = "7.5in",
+    dw = "4.5in"
   )
 
   val b2 = Sample(
@@ -329,10 +348,13 @@ object HTNs {
       Seq(),
       Seq()
     ),
-    "Table construction for this library encounters a multiple-insertion point item in the closure of an item set.",
+    "multiple insertion points in item set closure",
     Seq(
       Seq('d', 'a', 'c', 'b', 'd')
-    )
+    ),
+    "Table construction for this library encounters a multiple-insertion point item in the closure of an item set.",
+    nw = "7.5in",
+    dw = "4in"
   )
 
 // // TODO Removing for now --- raises runtime error
@@ -371,11 +393,12 @@ object HTNs {
       Seq('L'),
       Seq(1.0)
     ),
-    "In this library, completing two of four interleavable subgoals triggers the other two.",
+    "triggering additional interleaved goals",
     Seq(
       Seq('a', 'b', 'c', 'd'),
       Seq('a', 'a', 'b', 'c', 'd')
-    )
+    ),
+    "In this library, completing two of four interleavable subgoals triggers the other two."
   )
 
   val b5 = Sample(
@@ -390,12 +413,13 @@ object HTNs {
       Seq('L'),
       Seq(1.0)
     ),
-    "In this library, completing one subgoal enables two interleavable ones.",
+    "triggering additional interleaved goals",
     Seq(
       Seq('a', 'b', 'c'),
       Seq('a', 'c', 'b'),
       Seq('a', 'a', 'b', 'c')
-    )
+    ),
+    "In this library, completing one subgoal enables two interleavable ones."
   )
 
   val b6 = Sample(
@@ -411,7 +435,7 @@ object HTNs {
       Seq('S'),
       Seq(1.0)
     ),
-    "Duplicated concurrent goals",
+    "duplicated concurrent goals",
     Seq(
       Seq('a', 'b')
     )
@@ -457,7 +481,8 @@ object HTNs {
     Seq(
       Seq('a', 'b', 'c'),
       Seq('c', 'b', 'a')
-    )
+    ),
+    dw = "4in"
   )
 
   val b9 = Sample(
@@ -479,7 +504,8 @@ object HTNs {
     Seq(
       Seq('a', 'b', 'c', 'd'),
       Seq('d', 'c', 'b', 'a')
-    )
+    ),
+    dw = "4in"
   )
 
   val b10 = Sample(
@@ -560,7 +586,8 @@ object HTNs {
       Seq('c', 'd', 'b'),
       Seq('c', 'b'),
       Seq('c', 'd')
-    )
+    ),
+    dw = "4in"
   )
 
   val c1 = Sample(
@@ -578,7 +605,7 @@ object HTNs {
       Seq('S'),
       Seq(1.0)
     ),
-    "Variation of B8.",
+    "variation of B8",
     Seq(
       Seq('a', 'd'),
       Seq('a', 'c', 'b'),
@@ -605,7 +632,7 @@ object HTNs {
       Seq('L'),
       Seq(1.0)
     ),
-    "Combining several features",
+    "combining several features",
     Seq(
       Seq('d', 'a', 'd'),
     )
@@ -626,10 +653,11 @@ object HTNs {
       Seq('S'),
       Seq(1.0)
     ),
-    "Shift leads to a state that could have an empty base set. This case shows why the \\texttt{itemSet} and \texttt{baseSet} must be distinct.",
+    "shift to an empty base set",
     Seq(
       Seq('a', 'c', 'b'),
-    )
+    ),
+    "Shift leads to a state that could have an empty base set. This case shows why the \\texttt{itemSet} and \texttt{baseSet} must be distinct."
   )
 
   val c4 = Sample(
@@ -649,10 +677,11 @@ object HTNs {
       Seq('P'),
       Seq(1.0)
     ),
-    "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without.",
+    "disjunction of one subgoal with interleaving, one without",
     Seq(
       Seq('a', 'd'),
-    )
+    ),
+    "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without."
   )
 
   val c5 = Sample(
@@ -673,11 +702,12 @@ object HTNs {
       Seq('X'),
       Seq(1.0)
     ),
-    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
+    "disjunction of interleaving and non-interleaving subgoals in closure",
     Seq(
       Seq('d', 'b', 'a', 'c'),
       Seq('d', 'c')
-    )
+    ),
+    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content."
   )
 
   val c6 = Sample(
@@ -742,7 +772,7 @@ object HTNs {
       Seq('X'),
       Seq(1.0)
     ),
-    "Simplification of C5 to isolate a bug.",
+    "simplification of C5 to isolate a bug",
     Seq(
       Seq('b', 'a')
     )
@@ -762,12 +792,13 @@ object HTNs {
       Seq('F', 'G'),
       Seq(0.4, 0.6)
     ),
-    "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
+    "variation of B8",
     Seq(
       Seq('a', 'c', 'b'),
       Seq('a', 'c'),
       Seq('a')
-    )
+    ),
+    "Variation of B8 with no $K$, and both $F$ and $G$ intended."
   )
 
   val cp1 = Sample(
@@ -784,11 +815,14 @@ object HTNs {
       Seq('F', 'G'),
       Seq(0.4, 0.6)
     ),
-    "Variation of B8 with the split at the very top level.",
+    "variation of B8",
     Seq(
       Seq('c', 'b'),
       Seq('c')
-    )
+    ),
+    "Variation of B8 with the split at the very top level.",
+    nw = "6in",
+    dw = "4in"
   )
 
   val cp2 = Sample(
@@ -806,11 +840,12 @@ object HTNs {
       Seq('F', 'G', 'H'),
       Seq(0.2, 0.3, 0.5)
     ),
-    "Variation of B8 comparing split and alt.",
+    "variation of B8 comparing split and alt",
     Seq(
       Seq('a', 'b'),
       Seq('c')
-    )
+    ),
+    dw = "4in"
   )
 
   val cp3 = Sample(
@@ -850,12 +885,13 @@ object HTNs {
       Seq('F', 'G'),
       Seq(0.4, 0.6)
     ),
-    "C0 without the single top-level goal.",
+    "C0 without the single top-level goal",
     Seq(
       Seq('c'),
       Seq('c', 'b'),
       Seq('c', 'd', 'b')
-    )
+    ),
+    dw = "4in"
   )
 
   val cp5 = Sample(

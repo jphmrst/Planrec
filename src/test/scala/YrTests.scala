@@ -18,8 +18,8 @@ class YrTermsRules extends AnyFlatSpec with Matchers {
   import org.maraist.planrec.terms.Term.*
   import org.maraist.planrec.terms.Term.StringAsTerm
 
-  import org.maraist.planrec.yr.table.Item
-  import org.maraist.planrec.yr.table.HTN.*
+  import org.maraist.planrec.yr.Item
+  import org.maraist.planrec.yr.HTN.*
   {
     import org.maraist.planrec.generaltest.RuleItemSamples1.*
 

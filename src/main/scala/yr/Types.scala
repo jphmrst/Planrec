@@ -8,7 +8,7 @@
 // implied, for NON-COMMERCIAL use.  See the License for the specific
 // language governing permissions and limitations under the License.
 
-package org.maraist.planrec.yr.table
+package org.maraist.planrec.yr
 import scala.collection.mutable.Queue
 import org.maraist.graphviz.Graphable
 import org.maraist.fa.{
@@ -22,14 +22,11 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
 
-given Combiner[T, H, S]: util.EdgeAnnotationCombiner[
-  NfaAnnotation[T, H, S], Set[NfaAnnotation[T, H, S]]
-] =
-  util.EdgeAnnotationCombiner.singleSetCombiner[NfaAnnotation[T, H, S]]
-
 case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 
 case class NfaAnnotation[T, H, S](indirects: List[H])
+
+case class DfaAnnotation[T, H, S](indirects: List[(H, Int)])
 
 type HState[T, H, S] = Item[T, H, S] | H
 

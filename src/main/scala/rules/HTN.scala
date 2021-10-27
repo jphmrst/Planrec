@@ -243,8 +243,7 @@ import org.maraist.planrec.PlanLibrary
 
 class HTNLib[T, H, S](
   val rules: Set[HTNrule[T, H, S]], val top: Seq[H], topProbs: Seq[Double])(
-  using TermImpl[T, H, S])(
-  using termRender: LaTeXRenderer[T])
+  using TermImpl[T, H, S])(using LaTeXRenderer[T])
     extends PlanLibrary[HTNrule, T, H, S] {
 
   if top.length != topProbs.length
@@ -284,8 +283,10 @@ class HTNLib[T, H, S](
   }
 
   def toLaTeX(doc: LaTeXdoc): Unit = {
-    doc ++= "\\begin{tabular}{r@{~}l}\n"
+    doc ++= "\\begin{tabular}{r@{~}r@{~}l}\n"
     for(rule <- rules) {
+      if top.contains(rule.goal.termHead) then doc ++= "$\\star$"
+      doc ++= "&"
       rule.toLaTeX(doc)
       doc ++= "\\\\\n"
     }

@@ -22,9 +22,9 @@ package org.maraist.planrec
   *  2. Add a new class extending  RulePosition to
   *     describe an item position within the new rule.
   *
-  *  3. In a `given` declaration, add an
-  *     [[org.maraist.planrec.rules.InitialItem InitialItem]] instance
-  *     to calculate the initial item of a specific rule.
+  *  3. TODO out of date --- In a `given` declaration, add an
+  *     `InitialItem` instance to calculate the initial item of a
+  *     specific rule.
   *
   *  4. TODO --- how to derive items
   */
