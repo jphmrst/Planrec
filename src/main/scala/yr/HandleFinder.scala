@@ -362,6 +362,7 @@ with Combinable[T, H, S] {
     dfaStates: IndexedSeq[Set[HState[T, H, S]]],
     initialStateIdx: Int,
     dfaFinals: Set[Int],
+    initialAnnotation: Option[Set[DfaAnnotation[T, H, S]]],
     transitionsSeq: IndexedSeq[H],
     dfaTransitions: Array[Array[Int]],
     tracker: IndexSetsTracker,
@@ -370,7 +371,7 @@ with Combinable[T, H, S] {
       HandleDFA[T, H, S] = {
     stationBases.clear
     new HandleDFA[T, H, S](
-      dfaStates, initialStateIdx, dfaFinals, transitionsSeq,
+      dfaStates, initialStateIdx, dfaFinals, initialAnnotation, transitionsSeq,
       dfaTransitions, edgeAnnotations)
   }
 
@@ -479,12 +480,13 @@ with Combinable[T, H, S] {
 // =================================================================
 
 class HandleDFA[T, H, S](
-  protected val stateSeq: IndexedSeq[Set[HState[T, H, S]]],
-  val initialStateIndex: Int,
-  val finalStateIndices: Set[Int],
-  protected val transitionsSeq: IndexedSeq[H],
-  protected val transitionsMatrix: Array[Array[Int]],
-  protected val edgeAnnotations:
+  override protected val stateSeq: IndexedSeq[Set[HState[T, H, S]]],
+  override val initialStateIndex: Int,
+  override val finalStateIndices: Set[Int],
+  override val initialAnnotation: Option[Set[DfaAnnotation[T, H, S]]],
+  override protected val transitionsSeq: IndexedSeq[H],
+  override protected val transitionsMatrix: Array[Array[Int]],
+  override protected val edgeAnnotations:
       Array[Array[Option[Set[DfaAnnotation[T, H, S]]]]]
 )
 
