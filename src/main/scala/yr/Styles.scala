@@ -88,13 +88,18 @@ extends EdgeAnnotatedAutomatonStyle[
 
   annotationLabel = (
     anns: Set[DfaAnnotation[T, H, S]],
-    t: H, s0: Set[HState[T, H, S]], s1: Set[HState[T, H, S]]
+    _: H, _: Set[HState[T, H, S]], _: Set[HState[T, H, S]]
   ) => "{" + anns.map(dfaAnnotationToLaTeX).mkString(", ") + "}",
 
   eAnnotationLabel = (
     anns: Set[DfaAnnotation[T, H, S]],
-    s0: Set[HState[T, H, S]],
-    s1: Set[HState[T, H, S]]
+    _: Set[HState[T, H, S]],
+    _: Set[HState[T, H, S]]
+  ) => "{" + anns.map(dfaAnnotationToLaTeX).mkString(", ") + "}",
+
+  initialAnnotationLabel = (
+    anns: Set[DfaAnnotation[T, H, S]],
+    _: Set[HState[T, H, S]]
   ) => "{" + anns.map(dfaAnnotationToLaTeX).mkString(", ") + "}",
 
   nodeLabel = (
