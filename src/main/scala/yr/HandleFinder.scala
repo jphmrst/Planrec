@@ -513,12 +513,15 @@ extends EdgeAnnotatedDFA[
       sb, style, stateList, stateMap, si0, s0, ti0, t, si1, s1)
     annotation(s0, t, s1) match {
       case None => { }
-      case Some(sets) => {
-        for (DfaAnnotation(indirects) <- sets; (_, h) <- indirects)
-          do plotAnnotationEdge(sb, si1, h)
-      }
+      case Some(sets) => plotAnnotationEdges(sb, si1, sets)
     }
   }
+
+  def plotAnnotationEdges(
+    sb: StringBuilder, fromIndex: Int, sets: Set[DfaAnnotation[T, H, S]]):
+      Unit =
+    for (DfaAnnotation(indirects) <- sets; (_, h) <- indirects)
+      do plotAnnotationEdge(sb, fromIndex, h)
 
   def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
       Unit = {
@@ -527,6 +530,27 @@ extends EdgeAnnotatedDFA[
     sb ++= " -> V"
     sb ++= toIndex.toString
     sb ++= " [arrowhead = none, style = dotted];\n"
+  }
+
+  /** {@inheritDoc} Overridden in [[HandleDFA]] to add dotted lines to
+    * concurrent states.
+    */
+  override protected
+  def plotInitialStateMarker(
+    sb: StringBuilder,
+    style: EdgeAnnotatedAutomatonStyle[
+      Set[HState[T, H, S]],
+      H,
+      Set[DfaAnnotation[T, H, S]]],
+    s: Set[HState[T, H, S]],
+    idx: Int):
+      Unit = {
+    super.plotInitialStateMarker(sb, style, s, idx)
+
+    initialAnnotation match {
+      case None => { }
+      case Some(ann) => plotAnnotationEdges(sb, idx, ann)
+    }
   }
 }
 
