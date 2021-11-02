@@ -26,7 +26,9 @@ import scala.compiletime.ops.any
   */
 sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
 
-  /** HTN [[org.maraist.planrec.rules.HTN.HTNrule rule]] associated with this item. */
+  /** HTN [[org.maraist.planrec.rules.HTN.HTNrule rule]] associated with
+    * this item.
+    */
   def rule: HTNrule[T, H, S]
 
   /** Returns `true` if this item is a final item for its rule. */
@@ -41,7 +43,7 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
   /** Result of advancing this item for the given trigger.
     *
     * Note that Skolemizing, if needed, should be performed *before*
-g    * calling this method.
+    * calling this method.
     *
     * @param subst The substitution to be applied to the result.
     * @param trigger The action or subgoal used to advance this item.
@@ -87,7 +89,8 @@ object Item {
   * @param ready The frontier of subgoals which are neither satisfied
   * nor blocked in this item.
   */
-case class AllItem[T, H, S](val rule: All[T, H, S], val ready: Set[Int])
+case class AllItem[T, H, S](
+  val rule: All[T, H, S], val ready: Set[Int], val past: Set[Int] = Set())
   (using TermImpl[T, H, S])
     extends Item[T, H, S] {
 
@@ -107,14 +110,27 @@ case class AllItem[T, H, S](val rule: All[T, H, S], val ready: Set[Int])
       .flatMap(applyIdx(_))
 
   def applyIdx(i: Int): Option[AllItem[T, H, S]] =
-    if (ready.contains(i))
-      then {
-        val sb = Set.newBuilder[Int]
-        for(j <- ready; if i != j) { sb += j }
-        for((before, after) <- rule.order; if before == i) { sb += after }
-        Some(AllItem(rule, sb.result()))
-      }
-      else None
+    if (ready.contains(i)) then {
+      val newPast = past + i
+      // sb will hold the indices of the next item
+      val sb = Set.newBuilder[Int]
+      // All of the other ready indices are still ready
+      for(j <- ready; if i != j) { sb += j }
+      // Only subgoals with index greater than I can depend on the
+      // subgoal with index I.  So when looking for new subgoals we
+      // start with 1+I.
+      for(j <- i until rule.subgoals.size;
+        // Is J not yet completed?
+        if !newPast.contains(j);
+        // Is J not already known as ready?
+        if !ready.contains(j);
+        // Are all of J's blockers satisfied?
+        if rule.blockers(j).forall(newPast.contains(_))
+        // Then J is ready now too
+      ) do sb += j
+      Some(AllItem(rule, sb.result(), newPast))
+    }
+    else None
 
   def applications(trigger: H): Seq[TriggerHint] = {
     val builder = Seq.newBuilder[TriggerHint]

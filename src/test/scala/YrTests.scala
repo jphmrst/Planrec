@@ -46,6 +46,15 @@ class YrTermsRules extends AnyFlatSpec with Matchers {
       (rrAfterNP.get) `should` be (rComplete)
     }
 
+    "HTN All rule T" `should` "allow traversal through its lattice" in {
+      val ttInit = tt.initialItem
+      (ttInit) `should` be (tInitial)
+      (ttInit.triggers) `should` be (Set("A", "B"))
+
+      val ttAfterA = ttInit("A")
+      (ttAfterA.get) `should` be (tAfterA)
+    }
+
     "HTN One rule N" `should` "allow traversal through its lattice" in {
       val nnInit = nn.initialItem
       (nnInit) `should` be (nInitial)

@@ -128,7 +128,7 @@ private[yr] def dfaAnnotationToLaTeX[T, H, S](ann: DfaAnnotation[T, H, S]):
 // =================================================================
 
 def nodeDOT[T, H, S](node: HState[T, H, S]): String = node match {
-  case AllItem(All(goal, subgoals, _), ready) => {
+  case AllItem(All(goal, subgoals, _), ready, _) => {
     val sb = new StringBuilder
     sb ++= goal.toString()
     sb ++= " &rarr;"

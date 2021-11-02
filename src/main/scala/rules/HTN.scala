@@ -42,6 +42,13 @@ case class All[T, H, S](
                ("Ordered indices must refer to subgoal index")
   }
 
+  // Build a lookup table for dependencies
+  val blockers: Array[Set[Int]] = {
+    val builder = Array.fill(subgoals.size)(Set.newBuilder[Int])
+    for ((a,b) <- order) do builder(b) += a
+    builder.map(_.result)
+  }
+
   def apply(s: S): All[T, H, S] =
     All(goal.subst(s), subgoals.map(_.subst(s)), order)
 

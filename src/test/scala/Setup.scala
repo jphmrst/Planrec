@@ -21,33 +21,44 @@ object RuleItemSamples1 {
   val aa = Act[String, String, Unit]("A", "a")
   val bb = Act[String, String, Unit]("B", "b")
   val cc = Act[String, String, Unit]("C", "c")
+  val dd = Act[String, String, Unit]("D", "d")
   val nn = One[String, String, Unit]("N", IndexedSeq("A", "B"), Seq(0.4, 0.6))
   val pp = One[String, String, Unit]("P", IndexedSeq("A", "C"), Seq(0.3, 0.7))
   val qq = One[String, String, Unit]("Q", IndexedSeq("B", "C"), Seq(0.3, 0.7))
-  val mm = All[String, String, Unit]("M", IndexedSeq("N", "P"), Array[(Int,Int)]((0,1)))
-  val rr = All[String, String, Unit]("R", IndexedSeq("N", "P"), Array[(Int,Int)]())
+  val mm = All[String, String, Unit]("M", IndexedSeq("N", "P"), Array((0,1)))
+  val rr = All[String, String, Unit]("R", IndexedSeq("N", "P"), Array())
   val ss = All[String, String, Unit]
-              ("S", IndexedSeq("N", "P", "Q"), Array[(Int,Int)]((1,2)))
+              ("S", IndexedSeq("N", "P", "Q"), Array((1,2)))
+  val tt = All[String, String, Unit]
+              ("T", IndexedSeq("A", "B", "C", "D"), Array((0,2), (0,3), (1,2), (1,3)))
 
   val nInitial = OneItem(nn, false)
   val nComplete = OneItem(nn, true)
 
-  val rInitial = AllItem(rr, Set(0, 1))
-  val rThenN = AllItem(rr, Set(1))
-  val rThenP = AllItem(rr, Set(0))
-  val rComplete = AllItem(rr, Set())
+  val rInitial = AllItem(rr, Set(0, 1), Set())
+  val rThenN = AllItem(rr, Set(1), Set(0))
+  val rThenP = AllItem(rr, Set(0), Set(1))
+  val rComplete = AllItem(rr, Set(), Set(0, 1))
 
   val mInitial = AllItem(mm, Set(0))
 
   val aBefore = ActItem(aa, false)
   val aAfter = ActItem(aa, true)
 
-  val sInitial = AllItem(ss, Set(0,1))
-  val sAfterN = AllItem(ss, Set(1))
-  val sAfterP = AllItem(ss, Set(0,2))
-  val sAfterNP = AllItem(ss, Set(2))
-  val sAfterPS = AllItem(ss, Set(0))
-  val sComplete = AllItem(ss, Set())
+  val sInitial = AllItem(ss, Set(0,1), Set())
+  val sAfterN = AllItem(ss, Set(1), Set(0))
+  val sAfterP = AllItem(ss, Set(0,2), Set(1))
+  val sAfterNP = AllItem(ss, Set(2), Set(0, 1))
+  val sAfterPS = AllItem(ss, Set(0), Set(1, 2))
+  val sComplete = AllItem(ss, Set(), Set(0, 1, 2))
+
+  val tInitial = AllItem(tt, Set(0,1))
+  val tAfterA = AllItem(tt, Set(1), Set(0))
+  val tAfterB = AllItem(tt, Set(0), Set(1))
+  val tAfterAB = AllItem(tt, Set(2,3), Set(0, 1))
+  val tAfterABC = AllItem(tt, Set(3), Set(0, 1, 2))
+  val tAfterABD = AllItem(tt, Set(2), Set(0, 1, 3))
+  val tAfterABCD = AllItem(tt, Set(), Set(0, 1, 2, 3))
 
   /**
     * Was `'a0` in the old Lisp `yr/specs.lisp` file.
