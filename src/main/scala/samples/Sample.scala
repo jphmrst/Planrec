@@ -14,7 +14,7 @@ import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
-import org.maraist.planrec.yr.HandleFinder
+import org.maraist.planrec.yr.{HandleFinder,HandleNFA}
 
 trait Sample {
   type Term
@@ -123,18 +123,50 @@ object Sample extends Sampler {
     // val table = Table(library)
   }
 
-  @main def writeSamples: Unit = {
-    HTNs.load
-    val guide = new LaTeXdoc("samples")
-    guide.addPackage("geometry", "margin=1in")
-    guide.addPackage("times")
-    guide.addPackage("graphicx")
-    // guide.addPackage("multicol")
-    guide.open()
-    // guide ++= "\\begin{multicols}{2}"
-    val cleanup = addSamples(guide)
-    // guide ++= "\\end{multicols}"
-    guide.close()
-    cleanup.clean
+  trait Focus
+  case class All() extends Focus
+  case class OneNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
+      extends Focus
+  case class OneSample(sample: Sample) extends Focus
+
+  val focusSample: Focus = OneSample(HTNs.b10) // All() //
+
+  @main def printSamples: Unit = focusSample match {
+    case OneSample(sample) => {
+      type T = sample.Term
+      type H = sample.Head
+      type S = sample.Subst
+      given TermImpl[T, H, S] = sample.termImpl
+      println(sample.name)
+      val nfaBuilder = new HandleFinder[T, H, S]
+      nfaBuilder.libToNFA(sample.library)
+      nfaBuilder.dump()
+      val nfa = nfaBuilder.result
+      nfa.dump()
+      val dfa = nfa.toDFA
+      dfa.dump()
+    }
+
+    case OneNFA(name, nfa) => {
+      nfa.dump()
+    }
+
+    case All() => {
+      HTNs.load
+      val guide = new LaTeXdoc("samples")
+      guide.addPackage("geometry", "margin=1in")
+      guide.addPackage("times")
+      guide.addPackage("graphicx")
+      // guide.addPackage("multicol")
+      guide.open()
+
+      val cleanup = focusSample match {
+        case OneNFA(name, nfa) => { FilesCleaner() }
+        case All() => addSamples(guide)
+      }
+
+      guide.close()
+      cleanup.clean
+    }
   }
 }

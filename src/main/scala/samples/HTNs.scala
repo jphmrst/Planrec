@@ -524,7 +524,8 @@ object HTNs {
     "Concurrent epsilon rule",
     Seq(
       Seq('a', 'b')
-    )
+    ),
+    nw = "7.5in"
   )
 
   val bp0 = Sample(
