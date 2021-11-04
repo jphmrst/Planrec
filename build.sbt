@@ -8,6 +8,7 @@ unmanagedSources / excludeFilter := ".#*"
 Global / excludeLintKeys ++= Set(scalacOptions)
 
 libraryDependencies ++= Seq(
+  "org.typelevel" %% "paiges-core" % "0.4.2", // Remove when using automata from Scaladex again
   "org.scalactic" %% "scalactic" % "3.2.9",
   "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   "org.maraist" %% "scala-latex" % "2.0.0",
