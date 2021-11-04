@@ -532,8 +532,9 @@ extends EdgeAnnotatedDFA[
     sb ++= " [arrowhead = none, style = dotted];\n"
   }
 
-  /** {@inheritDoc} Overridden in [[HandleDFA]] to add dotted lines to
-    * concurrent states.
+  /** {@inheritDoc} Overridden in
+    * [[org.maraist.planrec.yr.HandleDFA][HandleDFA]] to add dotted
+    * lines to concurrent states.
     */
   override protected
   def plotInitialStateMarker(

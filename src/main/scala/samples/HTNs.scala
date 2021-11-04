@@ -16,8 +16,6 @@ import org.maraist.planrec.terms.Term.
 object HTNs {
   import org.maraist.planrec.rules.{
     One,All,FullAll,UnordAll,Act,HTNLib}
-  // import org.maraist.planrec.yr.table.{Item, AllItem, OneItem, ActItem}
-  // import org.maraist.planrec.yr.table.Item.{all, one, act}
   import org.maraist.planrec.terms.Term.{StringAsTerm,CharAsTerm}
 
   def load: Unit = ()
