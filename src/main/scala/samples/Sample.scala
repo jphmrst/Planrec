@@ -124,15 +124,15 @@ object Sample extends Sampler {
   }
 
   trait Focus
-  case class All() extends Focus
-  case class OneNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
+  case class GuideDoc() extends Focus
+  case class OnNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
       extends Focus
-  case class OneSample(sample: Sample) extends Focus
+  case class OnSample(sample: Sample) extends Focus
 
-  val focusSample: Focus = OneSample(HTNs.b10) // All() //
+  val focusSample: Focus = OnSample(HTNs.b9) // GuideDoc() //
 
   @main def printSamples: Unit = focusSample match {
-    case OneSample(sample) => {
+    case OnSample(sample) => {
       type T = sample.Term
       type H = sample.Head
       type S = sample.Subst
@@ -147,11 +147,11 @@ object Sample extends Sampler {
       dfa.dump()
     }
 
-    case OneNFA(name, nfa) => {
+    case OnNFA(name, nfa) => {
       nfa.dump()
     }
 
-    case All() => {
+    case GuideDoc() => {
       HTNs.load
       val guide = new LaTeXdoc("samples")
       guide.addPackage("geometry", "margin=1in")
@@ -161,8 +161,8 @@ object Sample extends Sampler {
       guide.open()
 
       val cleanup = focusSample match {
-        case OneNFA(name, nfa) => { FilesCleaner() }
-        case All() => addSamples(guide)
+        case OnNFA(name, nfa) => { FilesCleaner() }
+        case GuideDoc() => addSamples(guide)
       }
 
       guide.close()
