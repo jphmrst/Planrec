@@ -24,13 +24,17 @@ import scala.compiletime.ops.any
 
 case class Ind[T, H, S](val rule: HTNrule[T, H, S])
 
-case class NfaAnnotation[T, H, S](indirects: List[H])
+// case class NfaAnnotation[T, H, S](indirects: List[H])
 
-case class DfaAnnotation[T, H, S](indirects: List[(H, Int)])
+// case class DfaAnnotation[T, H, S](indirects: List[(H, Int)])
 
-type HState[T, H, S] = Item[T, H, S] | H
+case class Sparking[T, H, S](indirects: List[H], item: AllItem[T, H, S])
+
+type HState[T, H, S] = Sparking[T, H, S] | Item[T, H, S] | H
 
 type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
 
 type ItemsQueue[T, H, S] =
-  Queue[(HState[T, H, S], Set[Int], Option[Int], AllItem[T, H, S])]
+  Queue[(
+    HState[T, H, S], Set[Int], Option[Int],
+    Sparking[T, H, S] | AllItem[T, H, S])]

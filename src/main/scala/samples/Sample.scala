@@ -94,7 +94,7 @@ object Sample extends Sampler {
     guide ++= "\\subsection{YR}\n"
 
     // guide ++= "\\subsection*{NFA builder}\n"
-    import org.maraist.planrec.yr.yrNfaGraphStyle
+//    import org.maraist.planrec.yr.yrNfaGraphStyle
     val nfaBuilder = new HandleFinder[T, H, S]
     nfaBuilder.libToNFA(library)
     // graphable(guide, cleaner, nfaBuilder, tag+"NFA builder", sample.nfaWidth)
@@ -115,7 +115,7 @@ object Sample extends Sampler {
     graphable(guide, cleaner, nfa, tag+"NFA", sample.nfaWidth)
 
     guide ++= "\\subsection*{DFA}\n"
-    import org.maraist.planrec.yr.yrDfaGraphStyle
+//    import org.maraist.planrec.yr.yrDfaGraphStyle
     val dfa = nfa.toDFA
     // println("\nFrom Sample for DFA " + tag + ":")
     graphable(guide, cleaner, dfa, tag+"DFA", sample.dfaWidth)
@@ -125,9 +125,9 @@ object Sample extends Sampler {
 
   trait Focus
   case class GuideDoc() extends Focus
-  case class OnNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
-      extends Focus
   case class OnSample(sample: Sample) extends Focus
+  // case class OnNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
+  //     extends Focus
 
   val focusSample: Focus = OnSample(HTNs.b9) // GuideDoc() //
 
@@ -147,9 +147,9 @@ object Sample extends Sampler {
       dfa.dump()
     }
 
-    case OnNFA(name, nfa) => {
-      nfa.dump()
-    }
+    // case OnNFA(name, nfa) => {
+    //   nfa.dump()
+    // }
 
     case GuideDoc() => {
       HTNs.load
@@ -161,7 +161,7 @@ object Sample extends Sampler {
       guide.open()
 
       val cleanup = focusSample match {
-        case OnNFA(name, nfa) => { FilesCleaner() }
+        // case OnNFA(name, nfa) => { FilesCleaner() }
         case GuideDoc() => addSamples(guide)
       }
 
