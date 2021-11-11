@@ -101,9 +101,9 @@ extends NFABuilder[
           // Prepare the initial item for adding to the
           // automaton: if it has more that one ready subgoal, then
           // these should be sparked.
-          val initial: Sparking[T, H, S] | Item[T, H, S] = if isMulti
+          val initial: Sparking[T, H, S] | AllItem[T, H, S] = if isMulti
           then Sparking(List.from(i.triggers), i)
-          else bareInitial
+          else i
 
           // Add the rule station and initial item to the NFA, with an
           // epsilon transition from the station to that item.
@@ -112,16 +112,16 @@ extends NFABuilder[
 
           // Set up this initial item for mapping out its
           // successors.
-          itemsQueue.enqueue((ruleGoalHead, Set.empty[Int], None, i))
+          itemsQueue.enqueue((ruleGoalHead, Set.empty[Int], None, initial))
         }
       }
     }
 
     // Process the items in the queue
-    while (!(itemsQueue.isEmpty))
-      itemsQueue.dequeue match
-        case (prev, par, trans, item) =>
-          encodeItemTransition(prev, par, trans, item, itemsQueue)
+    while (!(itemsQueue.isEmpty)) itemsQueue.dequeue match {
+      case (prev, par, trans, item) =>
+        encodeItemTransition(prev, par, trans, item, itemsQueue)
+    }
   }
 
   /** Add the necessary components to an
@@ -148,24 +148,31 @@ extends NFABuilder[
       case AllItem(r, _, _) => r
     }
 
-//    // Make sure the successor item is in the NFA already
-//    ensureItemAdded(nextItem)
-//
-//    // Work out the current spawned tasks _minus_ any in the
-//    // transition.
-//    val postTransPar = transIdx match {
-//      case None => par
-//      case Some(i) => par - i
-//    }
-//
-//    // If there are any spawned tasks left, then nextItem is catching
-//    // indirected subgoals.
-//    val wasMulti = !postTransPar.isEmpty
-//
-//    // We will also need to examine any triggers in the nextItem's
-//    // ready set which are not already spawned out.
-//    val newInNextItem = nextItem.ready -- postTransPar
-//
+    // Make sure the successor item is in the NFA already
+    ensureItemAdded(nextItem)
+
+    // Work out the current spawned tasks _minus_ any in the
+    // transition.
+    val postTransPar = transIdx match {
+      case None => par
+      case Some(i) => par - i
+    }
+
+    // If there are any spawned tasks left, then nextItem is catching
+    // indirected subgoals.
+    val wasMulti = !postTransPar.isEmpty
+
+    // We will also need to examine any triggers in the nextItem's
+    // ready set which are not already spawned out.
+    val nextItemBare = nextItem match {
+      case i @ AllItem(_, _, _) => i
+      case Sparking(_, i) => i
+    }
+    val nextItemReady = nextItemBare.ready
+    val newInNextItem = nextItemReady -- postTransPar
+
+    // This next block is taken care of by the Sparking?
+
 //    // There is already a transition between prev and nextItem, but we
 //    // may need to annotate it.
 //    if ((wasMulti && newInNextItem.size > 0) || newInNextItem.size > 1)
@@ -180,53 +187,60 @@ extends NFABuilder[
 //            List.from(newInNextItem.map((i) => rule.subgoals(i).termHead)))
 //        )
 //      }
-//
-//    // Calculate the set of spawned terms active with nextItem
-//    val parAfterNext = if (wasMulti || newInNextItem.size > 1) then {
-//      postTransPar ++ newInNextItem
-//    } else {
-//      Set.empty[Int]
-//    }
-//
-//    // TODO Check if nextItem has already been expanded --- skip the
-//    // next bits if so.
-//
-//    // If we are not spawning the newly enabled subgoals, then we
-//    // epsilon-transition to its station.
-//    if (!wasMulti && newInNextItem.size <= 1) then {
-//      newInNextItem.map(
-//        (idx) => addETransition(nextItem, rule.subgoals(idx).termHead))
-//    }
-//
-//    // We have (at least) a new queue entry for each subgoal which is
-//    // ready in the new item.
-//    for (newTransIdx <- nextItem.ready) do {
-//      val newTransTerm = rule.subgoals(newTransIdx)
-//      val newTrans = newTransTerm.termHead
-//
-//      // Build the resulting item, and add it to the NFA if it is not
-//      // already there.
-//      nextItem.applyIdx(newTransIdx) match {
-//        case None => { }
-//        case Some(afterNextItem) => {
-//
-//          // Make sure the item is a state in the NFA
-//          ensureItemAdded(afterNextItem)
-//
-//          // Add the transition
-//          addTransition(nextItem, newTrans, afterNextItem)
-//
-//          // Add a queue entry
-//          queue.enqueue((
-//            nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
-//        }
-//      }
-//    }
+
+    // Calculate the set of spawned terms active with nextItem
+    val parAfterNext = if (wasMulti || newInNextItem.size > 1) then {
+      postTransPar ++ newInNextItem
+    } else {
+      Set.empty[Int]
+    }
+
+    // TODO Check if nextItem has already been expanded --- skip the
+    // next bits if so.
+
+    // If we are not spawning the newly enabled subgoals, then we
+    // epsilon-transition to its station.
+    if (!wasMulti && newInNextItem.size <= 1) then {
+      newInNextItem.map(
+        (idx) => addETransition(nextItem, rule.subgoals(idx).termHead))
+    }
+
+    // We have (at least) a new queue entry for each subgoal which is
+    // ready in the new item.
+    for (newTransIdx <- nextItemReady) do {
+      val newTransTerm = rule.subgoals(newTransIdx)
+      val newTrans = newTransTerm.termHead
+
+      // Build the resulting item, and add it to the NFA if it is not
+      // already there.
+      nextItemBare.applyIdx(newTransIdx) match {
+        case None => { }
+        case Some(afterNextItem) => {
+
+          // TODO It is probably here that we will need to move the
+          // above code, to turn the `afterNextItem` into a
+          // `Sparking`.
+
+          // Make sure the item is a state in the NFA
+          ensureItemAdded(afterNextItem)
+
+          // Add the transition
+          addTransition(nextItem, newTrans, afterNextItem)
+
+          // Add a queue entry
+          queue.enqueue((
+            nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
+        }
+      }
+    }
   }
 
-  def ensureItemAdded(item: AllItem[T, H, S]): Unit =
+  def ensureItemAdded(item: Sparking[T, H, S] | AllItem[T, H, S]): Unit =
     if !isState(item) then {
-      if (item.isFinal)
+      if (item match {
+        case Sparking(_, _) => false
+        case i @ AllItem(_, _, _) => i.isFinal
+      })
         then addFinalState(item)
       else addState(item)
     }
@@ -241,7 +255,24 @@ extends NFABuilder[
       HandleNFA[HState[T, H, S], H] =
     new HandleNFA[HState[T, H, S], H](
       statesSeq, initials, finals, transitionsSeq, labelsArray, epsilonsArray
-    )
+    ) {
+
+      override protected def afterStatePlot(
+        sb: StringBuilder,
+        style: AutomatonStyle[HState[T, H, S], H],
+        stateList: IndexedSeq[HState[T, H, S]],
+        stateMap: Map[HState[T, H, S], Int]):
+          Unit = {
+        super.afterStatePlot(sb, style, stateList, stateMap)
+        foreachState((s) => s match {
+          case Sparking(indirects, _): Sparking[T, H, S] =>
+            for (ind <- indirects)
+              do this.plotAnnotationEdge(sb, stateMap(s), stateMap(ind))
+
+          case _ => { }
+        })
+      }
+    }
 
   override protected def derivedNFA[SS, TT](
     statesSeq: IndexedSeq[SS],
@@ -299,6 +330,28 @@ extends NFABuilder[
 //      }
 //    }
 //  }
+
+  override protected def afterStatePlot(
+    sb: StringBuilder,
+    style: AutomatonStyle[HState[T, H, S], H],
+    stateList: IndexedSeq[HState[T, H, S]],
+    stateMap: Map[HState[T, H, S], Int]):
+      Unit = {
+    super.afterStatePlot(sb, style, stateList, stateMap)
+    foreachState((s) => {
+      println(s)
+      s match {
+      case Sparking(indirects, _): Sparking[T, H, S] => {
+        val sIdx = stateMap(s)
+        for (ind <- indirects) {
+          plotAnnotationEdge(sb, sIdx, stateMap(ind))
+        }
+      }
+
+      case _ => { }
+      }
+    })
+  }
 
   def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
       Unit = {
@@ -444,15 +497,15 @@ extends NFA[
 //      }
 //    }
 //  }
-//
-//  def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
-//      Unit = {
-//    sb ++= "\tV"
-//    sb ++= fromIndex.toString
-//    sb ++= " -> V"
-//    sb ++= toIndex.toString
-//    sb ++= " [arrowhead = none, style = dotted];\n"
-//  }
+
+  def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
+      Unit = {
+    sb ++= "\tV"
+    sb ++= fromIndex.toString
+    sb ++= " -> V"
+    sb ++= toIndex.toString
+    sb ++= " [arrowhead = none, style = dotted];\n"
+  }
 }
 
 // =================================================================
