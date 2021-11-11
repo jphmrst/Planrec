@@ -288,6 +288,18 @@ extends NFABuilder[
         })
       }
 
+      def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
+          Unit = {
+        sb ++= "\tV"
+        sb ++= fromIndex.toString
+        sb ++= " -> V"
+        sb ++= toIndex.toString
+        sb ++= " [arrowhead = none, style = dotted];\n"
+      }
+      
+
+
+
       override protected def assembleDFA(
         dfaStates: IndexedSeq[Set[HState[T, H, S]]],
         initialStateIdx: Int,
@@ -320,7 +332,7 @@ extends NFABuilder[
               }
 
               for (s <- indStatesBuilder.result)
-                do this.plotAnnotationEdge(sb, baseIdx, nfaStationBases(s))
+                do plotAnnotationEdge(sb, baseIdx, nfaStationBases(s))
             })
           }
         }
@@ -338,52 +350,6 @@ extends NFABuilder[
     new HandleNFA[SS, TT](
       statesSeq, initials, finals, transitionsSeq, labelsArray, epsilonsArray
     )
-
-
-  // =================================================================
-  // Draw the extra edges implied by annotations
-  // =================================================================
-
-//  override protected def plotPresentEdge(
-//    sb: StringBuilder,
-//    style: AutomatonStyle[
-//      HState[T, H, S], H, NfaAnnotation[T, H, S]],
-//    stateList: IndexedSeq[HState[T, H, S]],
-//    stateMap: Map[HState[T, H, S], Int],
-//    si0: Int, s0: HState[T, H, S],
-//    ti0: Int, t: H,
-//    si1: Int, s1: HState[T, H, S]):
-//      Unit = {
-//    super.plotPresentEdge(
-//      sb, style, stateList, stateMap, si0, s0, ti0, t, si1, s1)
-//    annotation(s0, t, s1) match {
-//      case None => { }
-//      case Some(NfaAnnotation(indirects)) => {
-//        for (h <- indirects)
-//          do plotAnnotationEdge(sb, si1, stateList.indexOf(h))
-//      }
-//    }
-//  }
-//
-//  override protected def plotPresentEdge(
-//    sb: StringBuilder,
-//    style: AutomatonStyle[
-//      HState[T, H, S], H, NfaAnnotation[T, H, S]],
-//    stateList: IndexedSeq[HState[T, H, S]],
-//    stateMap: Map[HState[T, H, S], Int],
-//    si0: Int, s0: HState[T, H, S],
-//    si1: Int, s1: HState[T, H, S]):
-//      Unit = {
-//    super.plotPresentEdge(
-//      sb, style, stateList, stateMap, si0, s0, si1, s1)
-//    annotation(s0, s1) match {
-//      case None => { }
-//      case Some(NfaAnnotation(indirects)) => {
-//        for (h <- indirects)
-//          do plotAnnotationEdge(sb, si1, stateList.indexOf(h))
-//      }
-//    }
-//  }
 
 
   override protected def afterStatePlot(
@@ -418,6 +384,7 @@ extends NFABuilder[
   }
 }
 
+
 // =================================================================
 
 class HandleNFA[SS, TT](
@@ -459,84 +426,6 @@ extends NFA[
     new HandleNFA[SS, TT](
       statesSeq, initials, finals, transitionsSeq, labelsArray, epsilonsArray
     )
-
-  // =================================================================
-  // Exploit the hook into Rabin-Scott to add additional states into
-  // the DFA
-  // =================================================================
-
-//  val combiner: EdgeAnnotationCombiner[
-//    NfaAnnotation[T, TT, S],
-//    Set[DfaAnnotation[T, TT, S]]
-//  ] = new EdgeAnnotationCombiner[
-//    NfaAnnotation[T, TT, S],
-//    Set[DfaAnnotation[T, TT, S]]
-//  ] {
-//    def single(a: NfaAnnotation[T, TT, S]): Set[DfaAnnotation[T, TT, S]] =
-//      Set(DfaAnnotation(for (h <- a.indirects) yield (h, stationBases(h))))
-//    def include(k: Set[DfaAnnotation[T, TT, S]], a: NfaAnnotation[T, TT, S]):
-//        Set[DfaAnnotation[T, TT, S]] =
-//      k + DfaAnnotation(for (h <- a.indirects) yield (h, stationBases(h)))
-//    def combine(
-//      k1: Set[DfaAnnotation[T, TT, S]],
-//      k2: Set[DfaAnnotation[T, TT, S]]):
-//        Set[DfaAnnotation[T, TT, S]] = k1 ++ k2
-//  }
-
-
-//  // =================================================================
-//  // Draw the extra edges implied by annotations
-//  // =================================================================
-//
-//  override protected def plotPresentEdge(
-//    sb: StringBuilder,
-//    style: AutomatonStyle[
-//      SS, TT, NfaAnnotation[T, TT, S]],
-//    stateList: IndexedSeq[SS],
-//    stateMap: Map[SS, Int],
-//    si0: Int, s0: SS,
-//    ti0: Int, t: TT,
-//    si1: Int, s1: SS):
-//      Unit = {
-//    super.plotPresentEdge(
-//      sb, style, stateList, stateMap, si0, s0, ti0, t, si1, s1)
-//    annotation(s0, t, s1) match {
-//      case None => { }
-//      case Some(NfaAnnotation(indirects)) => {
-//        for (h <- indirects)
-//          do plotAnnotationEdge(sb, si1, stateList.indexOf(h))
-//      }
-//    }
-//  }
-//
-//  override protected def plotPresentEdge(
-//    sb: StringBuilder,
-//    style: AutomatonStyle[
-//      SS, TT, NfaAnnotation[T, TT, S]],
-//    stateList: IndexedSeq[SS],
-//    stateMap: Map[SS, Int],
-//    si0: Int, s0: SS,
-//    si1: Int, s1: SS):
-//      Unit = {
-//    super.plotPresentEdge(
-//      sb, style, stateList, stateMap, si0, s0, si1, s1)
-//    annotation(s0, s1) match {
-//      case None => { }
-//      case Some(NfaAnnotation(indirects)) => {
-//        for (h <- indirects)
-//          do plotAnnotationEdge(sb, si1, stateList.indexOf(h))
-//      }
-//    }
-//  }
-
-  def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
-      Unit = {
-    sb ++= "\tV"
-    sb ++= fromIndex.toString
-    sb ++= " -> V"
-    sb ++= toIndex.toString
-    sb ++= " [arrowhead = none, style = dotted];\n"
-  }
 }
 
 
@@ -551,37 +440,6 @@ class HandleDFA[SS, TT](
 )
 
 extends DFA[SS, TT, AutomatonStyle] {
-
-  def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
-      Unit = {
-    sb ++= "\tV"
-    sb ++= fromIndex.toString
-    sb ++= " -> V"
-    sb ++= toIndex.toString
-    sb ++= " [arrowhead = none, style = dotted];\n"
-  }
-
-//  /** {@inheritDoc} Overridden in
-//    * [[org.maraist.planrec.yr.HandleDFA][HandleDFA]] to add dotted
-//    * lines to concurrent states.
-//    */
-//  override protected
-//  def plotInitialStateMarker(
-//    sb: StringBuilder,
-//    style: AutomatonStyle[
-//      SS,
-//      TT,
-//      Set[DfaAnnotation[T, TT, S]]],
-//    s: SS,
-//    idx: Int):
-//      Unit = {
-//    super.plotInitialStateMarker(sb, style, s, idx)
-//
-//    initialAnnotation match {
-//      case None => { }
-//      case Some(ann) => plotAnnotationEdges(sb, idx, ann)
-//    }
-//  }
 
   def assembleDFA[SS, TT](
     stateSeq: IndexedSeq[SS],
