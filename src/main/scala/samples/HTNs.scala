@@ -526,6 +526,49 @@ object HTNs {
     nw = "7.5in"
   )
 
+  val b11 = Sample(
+    "b11",
+    HTNLib(
+      Set(
+        FullAll('L', IndexedSeq('A', 'M')),
+        All('M', IndexedSeq('B', 'C', 'D'), Array((0,2), (1,2))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "Adding a single additional concurrent goal",
+    Seq(
+      Seq('a', 'b', 'c', 'd')
+    ),
+    nw = "7.5in"
+  )
+
+  val b12 = Sample(
+    "b12",
+    HTNLib(
+      Set(
+        FullAll('L', IndexedSeq('A', 'M')),
+        All('M', IndexedSeq('B', 'C', 'D', 'E'), Array((1,3), (2,3))),
+        Act('A', 'a'),
+        Act('B', 'b'),
+        Act('C', 'c'),
+        Act('D', 'd'),
+        Act('E', 'e')
+      ),
+      Seq('L'),
+      Seq(1.0)
+    ),
+    "Adding a single additional concurrent goal",
+    Seq(
+      Seq('a', 'b', 'c', 'd', 'e')
+    ),
+    nw = "7.5in"
+  )
+
   val bp0 = Sample(
     "bp0",
     HTNLib(
