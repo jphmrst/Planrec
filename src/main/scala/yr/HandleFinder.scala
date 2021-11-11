@@ -119,8 +119,10 @@ extends NFABuilder[
 
     // Process the items in the queue
     while (!(itemsQueue.isEmpty)) itemsQueue.dequeue match {
-      case (prev, par, trans, item) =>
+      case (prev, par, trans, item) => {
+        println(s"Dequeued $prev\n  with $par\n    $trans\n      $item")
         encodeItemTransition(prev, par, trans, item, itemsQueue)
+      }
     }
   }
 
@@ -171,23 +173,6 @@ extends NFABuilder[
     val nextItemReady = nextItemBare.ready
     val newInNextItem = nextItemReady -- postTransPar
 
-    // This next block is taken care of by the Sparking?
-
-//    // There is already a transition between prev and nextItem, but we
-//    // may need to annotate it.
-//    if ((wasMulti && newInNextItem.size > 0) || newInNextItem.size > 1)
-//      then transIdx match {
-//        case None => setEAnnotation(
-//          prev, nextItem,
-//          NfaAnnotation(List.from(newInNextItem.map(rule.subgoals(_).termHead)))
-//        )
-//        case Some(idx) => setAnnotation(
-//          prev, rule.subgoals(idx).termHead, nextItem,
-//          NfaAnnotation(
-//            List.from(newInNextItem.map((i) => rule.subgoals(i).termHead)))
-//        )
-//      }
-
     // Calculate the set of spawned terms active with nextItem
     val parAfterNext = if (wasMulti || newInNextItem.size > 1) then {
       postTransPar ++ newInNextItem
@@ -197,6 +182,10 @@ extends NFABuilder[
 
     // TODO Check if nextItem has already been expanded --- skip the
     // next bits if so.
+
+    // TODO This is the epsilon transition that should be omitted when
+    // adding (even a single) new ready goal when in a
+    // parallel-goal-tracking mode.
 
     // If we are not spawning the newly enabled subgoals, then we
     // epsilon-transition to its station.
