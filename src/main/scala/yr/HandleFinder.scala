@@ -62,7 +62,7 @@ extends NFABuilder[
 
     // Queue for all of the items which need to be processed.
     val itemsQueue = new ItemsQueue[T, H, S]
-
+
     // Process each rule, or stage it for processing.
     for (rule <- library.rules) do {
       val ruleGoalHead = rule.goal.termHead
@@ -120,12 +120,12 @@ extends NFABuilder[
     // Process the items in the queue
     while (!(itemsQueue.isEmpty)) itemsQueue.dequeue match {
       case (prev, par, trans, item) => {
-        println(s"Dequeued $prev\n  with $par\n    $trans\n      $item")
+        // println(s"Dequeued $prev\n  with $par\n    $trans\n      $item")
         encodeItemTransition(prev, par, trans, item, itemsQueue)
       }
     }
   }
-
+
   /** Add the necessary components to an
     * [[fa.full.NFABuilder][NFABuilder]] for the transition from a
     * `prev` item to the `next` item, and queue up any succeeding
@@ -194,6 +194,7 @@ extends NFABuilder[
         (idx) => addETransition(nextItem, rule.subgoals(idx).termHead))
     }
 
+
     // We have (at least) a new queue entry for each subgoal which is
     // ready in the new item.
     for (newTransIdx <- nextItemReady) do {
@@ -232,6 +233,7 @@ extends NFABuilder[
     }
   }
 
+
   def ensureItemAdded(item: Sparking[T, H, S] | AllItem[T, H, S]): Unit =
     if !isState(item) then {
       if (item match {
@@ -241,6 +243,7 @@ extends NFABuilder[
         then addFinalState(item)
       else addState(item)
     }
+
 
   override protected def assembleNFA(
     statesSeq: IndexedSeq[HState[T, H, S]],
@@ -253,6 +256,8 @@ extends NFABuilder[
     new HandleNFA[HState[T, H, S], H](
       statesSeq, initials, finals, transitionsSeq, labelsArray, epsilonsArray
     ) {
+
+      def nfaStationBases: HashMap[H, Int] = this.stationBases
 
       override protected def afterStatePlot(
         sb: StringBuilder,
@@ -273,7 +278,7 @@ extends NFABuilder[
       override def seedAdditionalDfaStates(tracker: IndexSetsTracker): Unit = {
         foreachState(_ match {
           case Sparking(ids, _): Sparking[T, H, S] => {
-            ids.map((station) => this.stationBases.getOrElseUpdate(station, {
+            ids.map((station) => nfaStationBases.getOrElseUpdate(station, {
               val (stationClosed, _) =
                 epsilonCloseIndices(Set(indexOf(station)))
               tracker.getIndex(stationClosed)
@@ -281,6 +286,44 @@ extends NFABuilder[
           }
           case _ => { }
         })
+      }
+
+      override protected def assembleDFA(
+        dfaStates: IndexedSeq[Set[HState[T, H, S]]],
+        initialStateIdx: Int,
+        dfaFinals: Set[Int],
+        transitionsSeq: IndexedSeq[H],
+        dfaTransitions: Array[Array[Int]],
+        tracker: IndexSetsTracker,
+        appearsIn: Array[Set[Int]]):
+          HandleDFA[Set[HState[T, H, S]], H] = {
+        new HandleDFA[Set[HState[T, H, S]], H](
+          dfaStates, initialStateIdx, dfaFinals, transitionsSeq, dfaTransitions
+        ) {
+          override protected def afterStatePlot(
+            sb: StringBuilder,
+            style: AutomatonStyle[Set[HState[T, H, S]], H],
+            stateList: IndexedSeq[Set[HState[T, H, S]]],
+            stateMap: Map[Set[HState[T, H, S]], Int]):
+              Unit = {
+            super.afterStatePlot(sb, style, stateList, stateMap)
+
+            foreachState ((base) => {
+              val indStatesBuilder = Set.newBuilder[H]
+              val baseIdx = stateMap(base)
+
+              for (s <- base) do s match {
+                case Sparking(indirects, _): Sparking[T, H, S] => {
+                  indStatesBuilder ++= indirects
+                }
+                case _ => { }
+              }
+
+              for (s <- indStatesBuilder.result)
+                do this.plotAnnotationEdge(sb, baseIdx, nfaStationBases(s))
+            })
+          }
+        }
       }
     }
 
@@ -295,6 +338,7 @@ extends NFABuilder[
     new HandleNFA[SS, TT](
       statesSeq, initials, finals, transitionsSeq, labelsArray, epsilonsArray
     )
+
 
   // =================================================================
   // Draw the extra edges implied by annotations
@@ -340,6 +384,7 @@ extends NFABuilder[
 //      }
 //    }
 //  }
+
 
   override protected def afterStatePlot(
     sb: StringBuilder,
@@ -372,8 +417,7 @@ extends NFABuilder[
     sb ++= " [arrowhead = none, style = dotted];\n"
   }
 }
-
-
+
 // =================================================================
 
 class HandleNFA[SS, TT](
@@ -438,6 +482,7 @@ extends NFA[
 //      k2: Set[DfaAnnotation[T, TT, S]]):
 //        Set[DfaAnnotation[T, TT, S]] = k1 ++ k2
 //  }
+
 
 //  // =================================================================
 //  // Draw the extra edges implied by annotations
@@ -493,6 +538,7 @@ extends NFA[
     sb ++= " [arrowhead = none, style = dotted];\n"
   }
 }
+
 
 // =================================================================
 
@@ -506,42 +552,15 @@ class HandleDFA[SS, TT](
 
 extends DFA[SS, TT, AutomatonStyle] {
 
-//  override protected def plotPresentEdge(
-//    sb: StringBuilder,
-//    style: AutomatonStyle[
-//      SS, TT, Set[DfaAnnotation[T, TT, S]]],
-//    stateList: IndexedSeq[SS],
-//    stateMap: Map[SS, Int],
-//    si0: Int,
-//    s0: SS,
-//    ti0: Int,
-//    t: TT,
-//    si1: Int,
-//    s1: SS
-//  ): Unit = {
-//    super.plotPresentEdge(
-//      sb, style, stateList, stateMap, si0, s0, ti0, t, si1, s1)
-//    annotation(s0, t, s1) match {
-//      case None => { }
-//      case Some(sets) => plotAnnotationEdges(sb, si1, sets)
-//    }
-//  }
-//
-//  def plotAnnotationEdges(
-//    sb: StringBuilder, fromIndex: Int, sets: Set[DfaAnnotation[T, TT, S]]):
-//      Unit =
-//    for (DfaAnnotation(indirects) <- sets; (_, h) <- indirects)
-//      do plotAnnotationEdge(sb, fromIndex, h)
-//
-//  def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
-//      Unit = {
-//    sb ++= "\tV"
-//    sb ++= fromIndex.toString
-//    sb ++= " -> V"
-//    sb ++= toIndex.toString
-//    sb ++= " [arrowhead = none, style = dotted];\n"
-//  }
-//
+  def plotAnnotationEdge(sb: StringBuilder, fromIndex: Int, toIndex: Int):
+      Unit = {
+    sb ++= "\tV"
+    sb ++= fromIndex.toString
+    sb ++= " -> V"
+    sb ++= toIndex.toString
+    sb ++= " [arrowhead = none, style = dotted];\n"
+  }
+
 //  /** {@inheritDoc} Overridden in
 //    * [[org.maraist.planrec.yr.HandleDFA][HandleDFA]] to add dotted
 //    * lines to concurrent states.
