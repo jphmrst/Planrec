@@ -215,21 +215,29 @@ extends NFABuilder[
       // already there.
       nextItemBare.applyIdx(newTransIdx) match {
         case None => { }
-        case Some(afterNextItem) => {
+        case Some(afterNextItem) => afterNextItem match {
+          case AllItem(allRule : All[T, H, S], _, _) => {
 
-          // TODO It is probably here that we will need to move the
-          // above code, to turn the `afterNextItem` into a
-          // `Sparking`.
+            // Does the follow-on state introduce additional
+            // concurrent states?
+            val diffReady = afterNextItem.ready -- nextItemBare.ready
+            val afterNextActual: Sparking[T, H, S] | AllItem[T, H, S] =
+              if diffReady.size > 1 || (diffReady.size > 0 && wasMulti) then
+                Sparking(
+                  List.from(diffReady.map(allRule.subgoals(_).termHead)),
+                  afterNextItem)
+              else afterNextItem
 
-          // Make sure the item is a state in the NFA
-          ensureItemAdded(afterNextItem)
+            // Make sure the item is a state in the NFA
+            ensureItemAdded(afterNextActual)
 
-          // Add the transition
-          addTransition(nextItem, newTrans, afterNextItem)
+            // Add the transition
+            addTransition(nextItem, newTrans, afterNextActual)
 
-          // Add a queue entry
-          queue.enqueue((
-            nextItem, parAfterNext, Some(newTransIdx), afterNextItem))
+            // Add a queue entry
+            queue.enqueue((
+              nextItem, parAfterNext, Some(newTransIdx), afterNextActual))
+          }
         }
       }
     }
@@ -269,6 +277,19 @@ extends NFABuilder[
             for (ind <- indirects)
               do this.plotAnnotationEdge(sb, stateMap(s), stateMap(ind))
 
+          case _ => { }
+        })
+      }
+
+      override def seedAdditionalDfaStates(tracker: IndexSetsTracker): Unit = {
+        foreachState(_ match {
+          case Sparking(ids, _): Sparking[T, H, S] => {
+            ids.map((station) => this.stationBases.getOrElseUpdate(station, {
+              val (stationClosed, _) =
+                epsilonCloseIndices(Set(indexOf(station)))
+              tracker.getIndex(stationClosed)
+            }))
+          }
           case _ => { }
         })
       }
@@ -406,11 +427,11 @@ extends NFA[
       statesSeq, initials, finals, transitionsSeq, labelsArray, epsilonsArray
     )
 
-//  // =================================================================
-//  // Exploit the hook into Rabin-Scott to add additional states into
-//  // the DFA
-//  // =================================================================
-//
+  // =================================================================
+  // Exploit the hook into Rabin-Scott to add additional states into
+  // the DFA
+  // =================================================================
+
 //  val combiner: EdgeAnnotationCombiner[
 //    NfaAnnotation[T, TT, S],
 //    Set[DfaAnnotation[T, TT, S]]
@@ -428,31 +449,7 @@ extends NFA[
 //      k2: Set[DfaAnnotation[T, TT, S]]):
 //        Set[DfaAnnotation[T, TT, S]] = k1 ++ k2
 //  }
-//
-//  override def seedAdditionalDfaStates(tracker: IndexSetsTracker): Unit = {
-//    foreachEdgeAnnotation((
-//      src: SS, dest: SS,
-//      ann: NfaAnnotation[T, TT, S]) => ann match {
-//      case NfaAnnotation(ids) => {
-//        ids.map((id) => queueStation(id, tracker))
-//      }
-//    })
-//    foreachEdgeAnnotation((
-//      src: SS, trans: TT, dest: SS,
-//      ann: NfaAnnotation[T, TT, S]) => ann match {
-//      case NfaAnnotation(ids) => {
-//        ids.map((id) => queueStation(id, tracker))
-//      }
-//    })
-//  }
-//
-//  protected def queueStation(station: TT, tracker: IndexSetsTracker): Unit = {
-//    stationBases.getOrElseUpdate(station, {
-//      val (stationClosed, _) = epsilonCloseIndices(Set(indexOf(station)))
-//      tracker.getIndex(stationClosed)
-//    })
-//  }
-//
+
 //  // =================================================================
 //  // Draw the extra edges implied by annotations
 //  // =================================================================
