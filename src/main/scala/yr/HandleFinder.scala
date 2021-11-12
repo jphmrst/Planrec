@@ -35,7 +35,7 @@ extends NFABuilder[
   NFAelements[HState[T, H, S], H], AutomatonStyle, AutomatonStyle
 ] {
 
-  private val hfDebug = true
+  private val hfDebug = false
 
   val stationBases = new HashMap[H, Int]
 
