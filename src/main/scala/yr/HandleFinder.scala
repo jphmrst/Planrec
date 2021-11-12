@@ -31,15 +31,8 @@ import scala.compiletime.ops.any
 class HandleFinder[T, H, S]
 
 extends NFABuilder[
-  HState[T, H, S], H,
-  Set,
-  [X, Y] =>> DFA[X, Y, AutomatonStyle],
-  [X, Y] =>> NFA[
-    X, Y, Set, [X, Y] =>> DFA[X, Y, AutomatonStyle],
-    AutomatonStyle, AutomatonStyle],
-  NFAelements[HState[T, H, S], H],
-  AutomatonStyle,
-  AutomatonStyle
+  HState[T, H, S], H, Set, HandleDFA, HandleNFA,
+  NFAelements[HState[T, H, S], H], AutomatonStyle, AutomatonStyle
 ] {
 
   val stationBases = new HashMap[H, Int]
