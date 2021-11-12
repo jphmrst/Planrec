@@ -10,6 +10,7 @@
 
 package org.maraist.planrec.yr
 import scala.collection.mutable.{HashMap, Queue}
+import scala.Console.{RED,GREEN,BLUE,BLACK}
 import org.maraist.graphviz.Graphable
 import org.maraist.fa
 import org.maraist.fa.util.IndexSetsTracker
@@ -24,7 +25,6 @@ import org.maraist.planrec.terms.TermImpl
 import org.maraist.planrec.terms.Term.termHead
 import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
-import scala.compiletime.ops.any
 
 // =================================================================
 
@@ -34,6 +34,8 @@ extends NFABuilder[
   HState[T, H, S], H, Set, HandleDFA, HandleNFA,
   NFAelements[HState[T, H, S], H], AutomatonStyle, AutomatonStyle
 ] {
+
+  private val hfDebug = true
 
   val stationBases = new HashMap[H, Int]
 
@@ -113,7 +115,10 @@ extends NFABuilder[
     // Process the items in the queue
     while (!(itemsQueue.isEmpty)) itemsQueue.dequeue match {
       case (prev, par, trans, item) => {
-        // println(s"Dequeued $prev\n  with $par\n    $trans\n      $item")
+        if hfDebug then {
+          println(s"${RED}- Dequeued $prev${BLACK}")
+          println(s"  With par $par\n    --[ $trans ]--> $item")
+        }
         encodeItemTransition(prev, par, trans, item, itemsQueue)
       }
     }
@@ -152,10 +157,14 @@ extends NFABuilder[
       case None => par
       case Some(i) => par - i
     }
+    if hfDebug then
+      println(s"    ${RED}postTransPar${BLACK} $postTransPar")
 
     // If there are any spawned tasks left, then nextItem is catching
     // indirected subgoals.
     val wasMulti = !postTransPar.isEmpty
+    if hfDebug then
+      println(s"    ${RED}wasMulti${BLACK} $wasMulti")
 
     // We will also need to examine any triggers in the nextItem's
     // ready set which are not already spawned out.
@@ -165,13 +174,21 @@ extends NFABuilder[
     }
     val nextItemReady = nextItemBare.ready
     val newInNextItem = nextItemReady -- postTransPar
+    if hfDebug then
+      println(s"    ${RED}newInNextItem${BLACK} $newInNextItem")
 
     // Calculate the set of spawned terms active with nextItem
-    val parAfterNext = if (wasMulti || newInNextItem.size > 1) then {
+    val parWithNext = if (wasMulti || newInNextItem.size > 1) then {
       postTransPar ++ newInNextItem
     } else {
       Set.empty[Int]
     }
+    if hfDebug then
+      println(s"    ${RED}parWithNext${BLACK} $parWithNext")
+
+    val hasParWithNext = parWithNext.size > 0
+    if hfDebug then
+      println(s"    ${RED}hasParWithNext${BLACK} $hasParWithNext")
 
     // TODO Check if nextItem has already been expanded --- skip the
     // next bits if so.
@@ -182,17 +199,30 @@ extends NFABuilder[
 
     // If we are not spawning the newly enabled subgoals, then we
     // epsilon-transition to its station.
-    if (!wasMulti && newInNextItem.size <= 1) then {
+    if (!hasParWithNext) then {
       newInNextItem.map(
-        (idx) => addETransition(nextItem, rule.subgoals(idx).termHead))
+        (idx) => {
+          if hfDebug then {
+            print(s"    ${GREEN}Added ε${BLACK}")
+            println(s" $nextItem --> ${rule.subgoals(idx).termHead}")
+          }
+          addETransition(nextItem, rule.subgoals(idx).termHead)
+        })
     }
-
 
     // We have (at least) a new queue entry for each subgoal which is
     // ready in the new item.
+    if hfDebug then println(s"    Ready subgoals $nextItemReady")
     for (newTransIdx <- nextItemReady) do {
       val newTransTerm = rule.subgoals(newTransIdx)
       val newTrans = newTransTerm.termHead
+      if hfDebug then {
+        println(s"    - For ready goal $newTrans (from $newTransTerm)")
+      }
+
+      val postNewTransPar = postTransPar - newTransIdx
+      if hfDebug then
+        println(s"    ${RED}postNewTransPar${BLACK} $postNewTransPar")
 
       // Build the resulting item, and add it to the NFA if it is not
       // already there.
@@ -200,26 +230,40 @@ extends NFABuilder[
         case None => { }
         case Some(afterNextItem) => afterNextItem match {
           case AllItem(allRule : All[T, H, S], _, _) => {
+            if hfDebug then
+              println(s"      Subsequent term $afterNextItem")
 
             // Does the follow-on state introduce additional
             // concurrent states?
             val diffReady = afterNextItem.ready -- nextItemBare.ready
+            val sparkNext = postNewTransPar.size > 0 || diffReady.size > 1
+            if hfDebug then {
+              println(s"      ${RED}diffReady${BLACK} $diffReady")
+              println(s"      ${RED}sparkNext${BLACK} $sparkNext")
+            }
+
             val afterNextActual: Sparking[T, H, S] | AllItem[T, H, S] =
-              if diffReady.size > 1 || (diffReady.size > 0 && wasMulti) then
+              if sparkNext && diffReady.size > 0 then
                 Sparking(
                   List.from(diffReady.map(allRule.subgoals(_).termHead)),
                   afterNextItem)
               else afterNextItem
+            if hfDebug then
+              println(s"      ${RED}afterNextActual${BLACK} $afterNextActual")
 
             // Make sure the item is a state in the NFA
             ensureItemAdded(afterNextActual)
 
             // Add the transition
             addTransition(nextItem, newTrans, afterNextActual)
+            if hfDebug then {
+              println(s"      ${GREEN}Added${BLACK} $nextItem")
+              println(s"        --[ $newTrans ]--> $afterNextActual")
+            }
 
             // Add a queue entry
             queue.enqueue((
-              nextItem, parAfterNext, Some(newTransIdx), afterNextActual))
+              nextItem, parWithNext, Some(newTransIdx), afterNextActual))
           }
         }
       }

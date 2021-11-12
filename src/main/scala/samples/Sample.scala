@@ -14,7 +14,7 @@ import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
-import org.maraist.planrec.yr.{HandleFinder,HandleNFA}
+import org.maraist.planrec.yr.{HandleFinder, HandleNFA, HandleDFA, HState}
 
 trait Sample {
   type Term
@@ -28,6 +28,23 @@ trait Sample {
   def termImpl: TermImpl[Term, Head, Subst]
   def nfaWidth: String = "7.5in"
   def dfaWidth: String = "7.5in"
+
+  def artifacts: (
+    HandleFinder[this.Term, this.Head, this.Subst],
+    HandleNFA[
+      HState[this.Term, this.Head, this.Subst], this.Head
+    ],
+    HandleDFA[
+      Set[HState[this.Term, this.Head, this.Subst]], this.Head
+    ]
+  ) = {
+    given TermImpl[this.Term, this.Head, this.Subst] = this.termImpl
+    val nfaBuilder = new HandleFinder[this.Term, this.Head, this.Subst]
+    nfaBuilder.libToNFA(this.library)
+    val nfa = nfaBuilder.result
+    val dfa = nfa.toDFA
+    (nfaBuilder, nfa, dfa)
+  }
 }
 
 object Sample extends Sampler {
@@ -129,7 +146,7 @@ object Sample extends Sampler {
   // case class OnNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
   //     extends Focus
 
-  val focusSample: Focus = GuideDoc() // OnSample(HTNs.b9) //
+  val focusSample: Focus = OnSample(HTNs.b11) // GuideDoc() //
 
   @main def printSamples: Unit = focusSample match {
     case OnSample(sample) => {
