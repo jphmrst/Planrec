@@ -146,7 +146,7 @@ object Sample extends Sampler {
   // case class OnNFA[T, H, S](name: String, nfa: HandleNFA[T, H, S])
   //     extends Focus
 
-  val focusSample: Focus = OnSample(HTNs.b11) // GuideDoc() //
+  val focusSample: Focus = GuideDoc() // OnSample(HTNs.b11) //
 
   @main def printSamples: Unit = focusSample match {
     case OnSample(sample) => {
