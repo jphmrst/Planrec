@@ -258,6 +258,10 @@ class HTNLib[T, H, S](
     "Must have the same number of top-level goals and top-level goal "
       + "probabilities")
 
+  if top.length == 0
+  then throw new IllegalArgumentException(
+    "List of top-level goals must be non-empty")
+
   /**
     * Normalized probabilities of each subgoal.
     */

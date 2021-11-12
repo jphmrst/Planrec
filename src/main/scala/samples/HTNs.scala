@@ -343,8 +343,8 @@ object HTNs {
         Act('C', 'c'),
         Act('D', 'd')
       ),
-      Seq(),
-      Seq()
+      Seq('R'),
+      Seq(1.0)
     ),
     "multiple insertion points in item set closure",
     Seq(
@@ -653,7 +653,8 @@ object HTNs {
       Seq('a', 'c', 'b'),
       Seq('a', 'd', 'c'),
       Seq('a', 'c', 'd')
-    )
+    ),
+    dw = "5in"
   )
 
   val c2 = Sample(
@@ -677,7 +678,8 @@ object HTNs {
     "combining several features",
     Seq(
       Seq('d', 'a', 'd'),
-    )
+    ),
+    dw = "5in"
   )
 
   val c3 = Sample(
@@ -695,11 +697,12 @@ object HTNs {
       Seq('S'),
       Seq(1.0)
     ),
-    "shift to an empty base set",
+    "difficult in first prototype",
     Seq(
       Seq('a', 'c', 'b'),
     ),
-    "Shift leads to a state that could have an empty base set. This case shows why the \\texttt{itemSet} and \texttt{baseSet} must be distinct."
+    "This grammar was difficult in the first Lisp implementation.",
+    dw = "5in"
   )
 
   val c4 = Sample(
@@ -723,7 +726,8 @@ object HTNs {
     Seq(
       Seq('a', 'd'),
     ),
-    "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without."
+    "In this library the top-level intention is a disjunction of a subgoal with interleaving, and one without.",
+    dw = "5in"
   )
 
   val c5 = Sample(
@@ -749,7 +753,9 @@ object HTNs {
       Seq('d', 'b', 'a', 'c'),
       Seq('d', 'c')
     ),
-    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content."
+    "Here the disjunction of both interleaving and non-interleaving subgoals arises in the closure of an item set.  Closure leads to disjunction of heterogeneous content.",
+    nw = "7.5in",
+    dw = "5in"
   )
 
   val c6 = Sample(
@@ -796,7 +802,9 @@ object HTNs {
     Seq(
       Seq('a', 'b', 'c', 'd'),
       Seq('a')
-    )
+    ),
+    nw = "7.5in",
+    dw = "5in"
   )
 
   val c8 = Sample(
@@ -817,7 +825,9 @@ object HTNs {
     "simplification of C5 to isolate a bug",
     Seq(
       Seq('b', 'a')
-    )
+    ),
+    nw = "7.5in",
+    dw = "5in"
   )
 
   val cp0 = Sample(
@@ -840,7 +850,9 @@ object HTNs {
       Seq('a', 'c'),
       Seq('a')
     ),
-    "Variation of B8 with no $K$, and both $F$ and $G$ intended."
+    "Variation of B8 with no $K$, and both $F$ and $G$ intended.",
+    nw = "6in",
+    dw = "5in"
   )
 
   val cp1 = Sample(
@@ -887,7 +899,8 @@ object HTNs {
       Seq('a', 'b'),
       Seq('c')
     ),
-    dw = "4in"
+    nw = "5in",
+    dw = "3.5in"
   )
 
   val cp3 = Sample(
@@ -911,7 +924,8 @@ object HTNs {
       Seq('c'),
       Seq('a', 'b'),
       Seq('a', 'd')
-    )
+    ),
+    dw = "4.5in"
   )
 
   val cp4 = Sample(
@@ -984,6 +998,7 @@ object HTNs {
       Seq('a', 'b', 'd', 'e', 'f', 'g'),
       Seq('a', 'b', 'e', 'd', 'f', 'g'),
       Seq('a')
-    )
+    ),
+    nw = "7.5in"
   )
 }
