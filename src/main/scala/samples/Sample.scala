@@ -105,7 +105,6 @@ object Sample extends Sampler {
     guide ++= "\\end{center}\n"
     // TODO
 
-    import org.maraist.planrec.yr.Node
     given TermImpl[T, H, S] = sample.termImpl
 
     guide ++= "\\subsection{YR}\n"

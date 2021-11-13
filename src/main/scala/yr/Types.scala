@@ -32,8 +32,6 @@ case class Sparking[T, H, S](indirects: List[H], item: AllItem[T, H, S])
 
 type HState[T, H, S] = Sparking[T, H, S] | Item[T, H, S] | H
 
-type Node[T, H, S] = Item[T, H, S] | H | Ind[T, H, S]
-
 type ItemsQueue[T, H, S] =
   Queue[(
     HState[T, H, S], Set[Int], Option[Int],
