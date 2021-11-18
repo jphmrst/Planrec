@@ -50,8 +50,7 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     * @param hint Directive for resolving the trigger to a particular
     * subgoal of this item's rule.
     */
-  def apply(trigger: H)(using hint: TriggerHint):
-      Option[Item[T, H, S]]
+  def apply(trigger: H)(using hint: TriggerHint): Option[Item[T, H, S]]
 
   /** Hints which might apply to this trigger, if it is ambiguous within
     * the possible subgoals/actions.
@@ -104,8 +103,7 @@ case class AllItem[T, H, S](
     res.result()
   }
 
-  def apply(trigger: H)(using hint: TriggerHint):
-      Option[AllItem[T, H, S]] =
+  def apply(trigger: H)(using hint: TriggerHint): Option[AllItem[T, H, S]] =
     Item.findMatchingSubgoal(trigger, rule.subgoals, hint)
       .flatMap(applyIdx(_))
 
