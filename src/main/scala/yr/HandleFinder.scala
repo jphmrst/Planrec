@@ -1,4 +1,4 @@
-// Copyright (C) 2021 John Maraist
+// Copyright (C) 2021, 2022 John Maraist
 // See the LICENSE.txt file distributed with this work for additional
 // information regarding copyright ownership.
 

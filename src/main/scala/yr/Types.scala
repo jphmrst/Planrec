@@ -22,17 +22,40 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
 
-case class Ind[T, H, S](val rule: HTNrule[T, H, S])
+/**
+  * Indirection node at the head of a stack fragment in the lower graph
+  *
+  * @param goal Goal term for which this substack was spawned.
+  */
+case class Ind[T, H, S](val goal: T)
 
 // case class NfaAnnotation[T, H, S](indirects: List[H])
 
 // case class DfaAnnotation[T, H, S](indirects: List[(H, Int)])
 
+/**
+  * Item annotated with newly-introduced top-level insertion point(s),
+  * used in the handle-finding automata when new concurrent subgoals
+  * are first actionable.
+  *
+  * @param indirects The new concurrent subgoals.
+  * @param item Underlying item.
+  */
 case class Sparking[T, H, S](indirects: List[H], item: AllItem[T, H, S])
 
+/**
+  * Possible forms of the state in the nondeterminisic handle-finding
+  * automaton (or state elements in the deterministic automaton).
+  */
 type HState[T, H, S] = Sparking[T, H, S] | Item[T, H, S] | H
 
+/**
+  * The specific type of queue for holding states to be processed when
+  * building the handle-finding nondeterministic automaton.
+  */
 type ItemsQueue[T, H, S] =
   Queue[(
-    HState[T, H, S], Set[Int], Option[Int],
+    HState[T, H, S],
+    Set[Int],
+    Option[Int],
     Sparking[T, H, S] | AllItem[T, H, S])]
