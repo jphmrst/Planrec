@@ -45,13 +45,14 @@ extends NFABuilder[
     // First add all of the rule heads as stations.
     for (rule <- library.rules) do {
       val head = rule.goal.termHead
+      val station = Station(head)
 
       // Add the rule goal head as a station to the NFA if it is not
       // already present.
-      if !isState(head) then {
-        if library.top.contains(head)
-        then addInitialState(head)
-        else addState(head)
+      if !isState(station) then {
+        if library.top.contains(station)
+        then addInitialState(station)
+        else addState(station)
       }
     }
 
@@ -61,7 +62,9 @@ extends NFABuilder[
     // Process each rule, or stage it for processing.
     for (rule <- library.rules) do {
       val ruleGoalHead = rule.goal.termHead
+      val ruleGoalStation = Station(ruleGoalHead)
       val bareInitial: Item[T, H, S] = initialItem(rule)
+      val stateItem: Item[T, H, S] = bareInitial
 
       // For One- and Act-rules, we can just add the related items
       // right away.  Otherwise for All-rules, we queue the initial
@@ -69,25 +72,27 @@ extends NFABuilder[
       // the processing queue are already nodes in the NFA.
       bareInitial match {
         case OneItem(r @ One(_, subgoals, probs), _) => {
-          addState(bareInitial)
-          addETransition(ruleGoalHead, bareInitial)
+          addState(stateItem)
+          addETransition(ruleGoalStation, stateItem)
           // TODO Do something with probs
           val finalItem = OneItem(r, true)
-          addFinalState(finalItem)
+          val finalItemState = finalItem
+          addFinalState(finalItemState)
           // OK to use triggers instead of actionHints here because
           // they all lead to the finalItem.
           for (t <- bareInitial.triggers)
-            do addTransition(bareInitial, t, finalItem)
+            do addTransition(stateItem, t, finalItemState)
           for (s <- subgoals)
-            do addETransition(bareInitial, s.termHead)
+            do addETransition(stateItem, Station(s.termHead))
         }
 
         case ActItem(r, _) => {
-          addState(bareInitial)
-          addETransition(ruleGoalHead, bareInitial)
+          addState(stateItem)
+          addETransition(ruleGoalStation, stateItem)
           val finalItem = ActItem(r, true)
-          addFinalState(finalItem)
-          addTransition(bareInitial, r.action.termHead, finalItem)
+          val finalStateItem = finalItem
+          addFinalState(finalStateItem)
+          addTransition(stateItem, r.action.termHead, finalStateItem)
         }
 
         case i @ AllItem(r, ready, past) => {
@@ -103,11 +108,11 @@ extends NFABuilder[
           // Add the rule station and initial item to the NFA, with an
           // epsilon transition from the station to that item.
           addState(initial)
-          addETransition(ruleGoalHead, initial)
+          addETransition(ruleGoalStation, initial)
 
           // Set up this initial item for mapping out its
           // successors.
-          itemsQueue.enqueue((ruleGoalHead, Set.empty[Int], None, initial))
+          itemsQueue.enqueue((ruleGoalStation, Set.empty[Int], None, initial))
         }
       }
     }
@@ -143,9 +148,9 @@ extends NFABuilder[
     queue: ItemsQueue[T, H, S])(
     using TermImpl[T, H, S]):
       Unit = {
-    val rule = nextItem match {
-      case Sparking(_, AllItem(r, _, _)) => r
-      case AllItem(r, _, _) => r
+    val rule: All[T, H, S] = nextItem match {
+      case Sparking(_, AllItem(r, _, _)): Sparking[T, H, S] => r
+      case AllItem(r, _, _): AllItem[T, H, S] => r
     }
 
     // Make sure the successor item is in the NFA already
@@ -206,7 +211,7 @@ extends NFABuilder[
             print(s"    ${GREEN}Added ε${BLACK}")
             println(s" $nextItem --> ${rule.subgoals(idx).termHead}")
           }
-          addETransition(nextItem, rule.subgoals(idx).termHead)
+          addETransition(nextItem, Station(rule.subgoals(idx).termHead))
         })
     }
 
@@ -228,44 +233,45 @@ extends NFABuilder[
       // already there.
       nextItemBare.applyIdx(newTransIdx) match {
         case None => { }
-        case Some(afterNextItem) => afterNextItem match {
-          case AllItem(allRule : All[T, H, S], _, _) => {
-            if hfDebug then
-              println(s"      Subsequent term $afterNextItem")
+        case Some(afterNextItem): Option[AllItem[T, H, S]] =>
+          afterNextItem match {
+            case AllItem(allRule : All[T, H, S], _, _): AllItem[T, H, S] => {
+              if hfDebug then
+                println(s"      Subsequent term $afterNextItem")
 
-            // Does the follow-on state introduce additional
-            // concurrent states?
-            val diffReady = afterNextItem.ready -- nextItemBare.ready
-            val sparkNext = postNewTransPar.size > 0 || diffReady.size > 1
-            if hfDebug then {
-              println(s"      ${RED}diffReady${BLACK} $diffReady")
-              println(s"      ${RED}sparkNext${BLACK} $sparkNext")
-            }
+              // Does the follow-on state introduce additional
+              // concurrent states?
+              val diffReady = afterNextItem.ready -- nextItemBare.ready
+              val sparkNext = postNewTransPar.size > 0 || diffReady.size > 1
+              if hfDebug then {
+                println(s"      ${RED}diffReady${BLACK} $diffReady")
+                println(s"      ${RED}sparkNext${BLACK} $sparkNext")
+              }
 
-            val afterNextActual: Sparking[T, H, S] | AllItem[T, H, S] =
-              if sparkNext && diffReady.size > 0 then
-                Sparking(
+              val afterNextActual: Sparking[T, H, S] | AllItem[T, H, S] =
+                if sparkNext && diffReady.size > 0 then
+                  Sparking(
                   List.from(diffReady.map(allRule.subgoals(_).termHead)),
-                  afterNextItem)
-              else afterNextItem
-            if hfDebug then
-              println(s"      ${RED}afterNextActual${BLACK} $afterNextActual")
+                    afterNextItem)
+                else afterNextItem
+              if hfDebug then
+                println(s"      ${RED}afterNextActual${BLACK} $afterNextActual")
 
-            // Make sure the item is a state in the NFA
-            ensureItemAdded(afterNextActual)
+              // Make sure the item is a state in the NFA
+              ensureItemAdded(afterNextActual)
 
-            // Add the transition
-            addTransition(nextItem, newTrans, afterNextActual)
-            if hfDebug then {
-              println(s"      ${GREEN}Added${BLACK} $nextItem")
-              println(s"        --[ $newTrans ]--> $afterNextActual")
+              // Add the transition
+              addTransition(nextItem, newTrans, afterNextActual)
+              if hfDebug then {
+                println(s"      ${GREEN}Added${BLACK} $nextItem")
+                println(s"        --[ $newTrans ]--> $afterNextActual")
+              }
+
+              // Add a queue entry
+              queue.enqueue((
+                nextItem, parWithNext, Some(newTransIdx), afterNextActual))
             }
-
-            // Add a queue entry
-            queue.enqueue((
-              nextItem, parWithNext, Some(newTransIdx), afterNextActual))
           }
-        }
       }
     }
   }
@@ -306,7 +312,8 @@ extends NFABuilder[
         foreachState((s) => s match {
           case Sparking(indirects, _): Sparking[T, H, S] =>
             for (ind <- indirects)
-              do this.plotAnnotationEdge(sb, stateMap(s), stateMap(ind))
+              do this.plotAnnotationEdge(
+                sb, stateMap(s), stateMap(Station(ind)))
 
           case _ => { }
         })
@@ -317,7 +324,7 @@ extends NFABuilder[
           case Sparking(ids, _): Sparking[T, H, S] => {
             ids.map((station) => nfaStationBases.getOrElseUpdate(station, {
               val (stationClosed, _) =
-                epsilonCloseIndices(Set(indexOf(station)))
+                epsilonCloseIndices(Set(indexOf(Station(station))))
               tracker.getIndex(stationClosed)
             }))
           }
@@ -402,7 +409,7 @@ extends NFABuilder[
       case Sparking(indirects, _): Sparking[T, H, S] => {
         val sIdx = stateMap(s)
         for (ind <- indirects) {
-          plotAnnotationEdge(sb, sIdx, stateMap(ind))
+          plotAnnotationEdge(sb, sIdx, stateMap(Station(ind)))
         }
       }
 
@@ -491,3 +498,13 @@ extends DFA[SS, TT, AutomatonStyle] {
 }
 
 // =================================================================
+
+object HandleDFA {
+
+  def apply[T, H, S](library: HTNLib[T, H, S])(using TermImpl[T, H, S]) = {
+    val finder = new HandleFinder[T, H, S]
+    finder.libToNFA(library)
+    finder.result.toDFA
+  }
+
+}

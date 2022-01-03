@@ -57,6 +57,8 @@ sealed trait Item[T, H, S](using impl: TermImpl[T, H, S]) {
     * @param trigger The action or subgoal under question.
     */
   def applications(trigger: H): Seq[TriggerHint]
+
+  def itemOf: Option[Item[T, H, S]] = Some(this)
 }
 
 /** Helper methods. */

@@ -41,13 +41,19 @@ case class Ind[T, H, S](val goal: T)
   * @param indirects The new concurrent subgoals.
   * @param item Underlying item.
   */
-case class Sparking[T, H, S](indirects: List[H], item: AllItem[T, H, S])
+case class Sparking[T, H, S](indirects: List[H], item: AllItem[T, H, S]) {
+  def itemOf: Option[Item[T, H, S]] = Some(item)
+}
+
+// case class StateItem[T, H, S](item: Item[T, H, S])
+
+case class Station[H](head: H)
 
 /**
   * Possible forms of the state in the nondeterminisic handle-finding
   * automaton (or state elements in the deterministic automaton).
   */
-type HState[T, H, S] = Sparking[T, H, S] | Item[T, H, S] | H
+type HState[T, H, S] = Sparking[T, H, S] | Item[T, H, S] | Station[H]
 
 /**
   * The specific type of queue for holding states to be processed when
