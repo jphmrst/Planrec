@@ -127,5 +127,11 @@ class YrTermsRules extends AnyFlatSpec with Matchers {
       val aaInit = aa.initialItem
       (aaInit) `should` be (aBefore)
     }
+
+    "lib0" `should` "translate to a table without crashing" in {
+      import org.maraist.planrec.yr.Table
+      import org.maraist.planrec.terms.Term.CharAsTerm
+      val table0 = Table(lib0)
+    }
   }
 }
