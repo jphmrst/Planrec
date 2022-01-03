@@ -80,9 +80,11 @@ object Table {
       dfa.transitionIndex(s, l) match {
         case None => { }
         case Some(r) => for(elem <- dfa.state(r)) do elem match {
+          case Station(_) => { }
           case Sparking(_, item): Sparking[T, H, S] => pullFinalItem(item)
-          case item: Item[T, H, S] => pullFinalItem(item)
-          case _ => { }
+          case i@AllItem(_, _, _): AllItem[T, H, S] => pullFinalItem(i)
+          case i@OneItem(_, _): OneItem[T, H, S] => pullFinalItem(i)
+          case i@ActItem(_, _): ActItem[T, H, S] => pullFinalItem(i)
         }
       }
 
