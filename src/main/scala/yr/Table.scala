@@ -9,7 +9,7 @@
 // language governing permissions and limitations under the License.
 
 package org.maraist.planrec.yr
-import scala.collection.mutable.Queue
+import scala.collection.mutable.{ListBuffer, Queue}
 import org.maraist.latex.{LaTeXdoc, LaTeXRenderable}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
@@ -23,7 +23,7 @@ class Table[T, H, S](
   private val headColMap: Map[H, Int],
   private val stateRowMap: Map[Set[HState[T, H, S]], Int],
   private val shifts: Array[Array[Option[Int]]],
-  private val reduces: Array[List[(Int, Int)]],
+  private val reduces: Array[List[(Int, HTNrule[T, H, S])]],
   private val sparks: Array[List[List[Int]]]
 ) /* (using TermImpl[T, H, S]) */
     extends LaTeXRenderable {
@@ -38,7 +38,8 @@ class Table[T, H, S](
   inline def rowShift(state: Row, termHead: Col): Option[Row] =
     shifts(state)(termHead)
 
-  inline def rowReduces(state: Row): List[(Row, Int)] = reduces(state)
+  inline def rowReduces(state: Row): List[(Row, HTNrule[T, H, S])] =
+    reduces(state)
 
   inline def rowSparks(state: Row): List[List[Row]] = sparks(state)
 
@@ -47,26 +48,34 @@ class Table[T, H, S](
   def toLaTeX(doc: LaTeXdoc): Unit = {
     doc ++= "\\begin{center}\n"
 
-    val cline = s"\\cline{2-${3 + termHeads.length}}"
-    doc ++= "\\begin{supertabular}{r|c|c|"
+    val lastCol = 4 + termHeads.length
+    val cline = s"\\cline{2-$lastCol}"
+    doc ++= s"\\tabletail{$cline\\multicolumn{$lastCol}{r}{\\emph{continues}}\\\\}\n"
+    doc ++= s"\\tablelasttail{$cline}\n"
+    doc ++= s"\\tablehead{"
+    doc ++= "\\multicolumn{4}{c}{} "
+    for (i <- 0 until termHeads.length) do doc ++= s" & \\multicolumn{1}{c}{$i}"
+    doc ++= "\\\\\n"
+    doc ++= "\\multicolumn{1}{c}{} & \\multicolumn{2}{c}{Reduce} & \\multicolumn{1}{c}{Spark}"
+    for (i <- 0 until termHeads.length) do doc ++= s" & \\multicolumn{1}{c}{${termHeads(i)}}"
+    doc ++= s"\\\\ $cline\n"
+    doc ++= "}\n" // end of \tablehead
+    doc ++= "\\begin{supertabular}{r|r@{$\\:$}l|c|"
     for (i <- 0 until termHeads.length) do {
       doc ++= "|c"
     }
     doc ++= "|}\n"
-    doc ++= "\\multicolumn{1}{c}{} & \\multicolumn{1}{c}{} & \\multicolumn{1}{c}{} "
-    for (i <- 0 until termHeads.length) do doc ++= s" & \\multicolumn{1}{c}{$i}"
-    doc ++= "\\\\\n"
-    doc ++= "\\multicolumn{1}{c}{} & \\multicolumn{1}{c}{Reduce} & \\multicolumn{1}{c}{Spark}"
-    for (i <- 0 until termHeads.length) do doc ++= s" & \\multicolumn{1}{c}{${termHeads(i)}}"
-    doc ++= s"\\\\ $cline\n"
     for (i <- 0 until states.length) do {
       doc ++= s"$i & "
 
-      val rs: List[(Int, Int)] = reduces(i)
+      val rs: List[(Int, HTNrule[T, H, S])] = reduces(i)
       rs.length match {
-        case 0 => doc ++= "---"
+        case 0 => doc ++= "\\multicolumn{2}{c|}{---}"
         case 1 => rs(0) match {
-          case (rule, len) => doc ++= s"$rule [$len]"
+          case (row, rule) => {
+            doc ++= s"{\\small [$row]} "
+            rule.toLaTeX(doc)
+          }
         }
         case _ => {
           doc ++= "\\begin{tabular}[c]{@{}c@{}}"
@@ -108,7 +117,14 @@ object Table {
       Table[T, H, S] = {
 
     val dfa = HandleDFA(library)
-    val labels: IndexedSeq[H] = dfa.labels
+    val dfaLabelMax = dfa.labels.length
+    val labels: IndexedSeq[H] = {
+      val allLabels = IndexedSeq.newBuilder[H]
+      allLabels ++= dfa.labels
+      for (topNonterm <- library.top)
+        do if !dfa.labels.contains(topNonterm) then allLabels += topNonterm
+      allLabels.result
+    }
     val states: IndexedSeq[Set[HState[T, H, S]]] = dfa.states
 
     val stations: Set[H] = {
@@ -162,22 +178,18 @@ object Table {
     }
 
     val shifts = Array.tabulate(states.length, labels.length)((s, l) =>
-      dfa.transitionIndex(s, l))
+      if l < dfaLabelMax then dfa.transitionIndex(s, l) else None)
 
     val reduces = Array.tabulate(states.length)((s) => {
-      val buf = List.newBuilder[(Int, Int)]
-
-      def pullFinalItem(item: Item[T, H, S])(using TermImpl[T, H, S]): Unit = {
-        if item.isFinal then
-          buf += ((headCol(item.rule.goal.termHead), item.rule.length))
-      }
-
+      val buf = new RowPairListBuffer[T, H, S](headCol)
+      // println(headCol)
       for(elem <- dfa.state(s)) do elem match {
-        case Sparking(_, item): Sparking[T, H, S] => pullFinalItem(item)
+        case i@AllItem(_, _, _): AllItem[T, H, S] => buf.consider(i)
+        case i@OneItem(_, _): OneItem[T, H, S] => buf.consider(i)
+        case i@ActItem(_, _): ActItem[T, H, S] => buf.consider(i)
+        // If it's sparking subtasks, better not be a final item.
+        case Sparking(_, i): Sparking[T, H, S] => { }
         case _: H => { }
-        case i@AllItem(_, _, _): AllItem[T, H, S] => pullFinalItem(i)
-        case i@OneItem(_, _): OneItem[T, H, S] => pullFinalItem(i)
-        case i@ActItem(_, _): ActItem[T, H, S] => pullFinalItem(i)
       }
 
       buf.result
@@ -201,3 +213,12 @@ object Table {
       headCol, stateRow, shifts, reduces, sparks)
   }
 }
+
+class RowPairListBuffer[T, H, S](val headCol: Map[H, Int])
+  (using TermImpl[T, H, S])
+    extends ListBuffer[(Int, HTNrule[T, H, S])] {
+  def consider(i: Item[T, H, S]): Unit = {
+    if i.isFinal then +=((headCol(i.rule.goal.termHead), i.rule))
+  }
+}
+
