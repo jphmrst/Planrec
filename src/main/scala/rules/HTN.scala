@@ -19,6 +19,7 @@ trait RuleForm[T, H, S](using TermImpl[T,H,S])
   def goal: T
   def unblockedSubgoals: Set[T]
   def apply(subst: S): RuleForm[T, H, S]
+  def length: Int
 }
 
 /** An "and-rule", indicating that a goal can be fulfilled by meeting
@@ -41,6 +42,8 @@ case class All[T, H, S](
     then throw IllegalArgumentException
                ("Ordered indices must refer to subgoal index")
   }
+
+  def length: Int = subgoals.length
 
   // Build a lookup table for dependencies
   val blockers: Array[Set[Int]] = {
@@ -187,6 +190,8 @@ case class One[T, H, S]
     }
   }
 
+  def length: Int = 1
+
   override def toString(): String = {
     val sb = new StringBuilder
     sb ++= "One("
@@ -217,6 +222,8 @@ case class Act[T, H, S](val goal: T, val action: T)
     Act(goal.subst(subst), action.subst(subst))
 
   def unblockedSubgoals: Set[T] = Set.empty
+
+  def length: Int = 1
 
   def toLaTeX(doc: LaTeXdoc):
       Unit = {
