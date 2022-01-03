@@ -10,6 +10,7 @@
 
 package org.maraist.planrec.yr
 import scala.collection.mutable.Queue
+import org.maraist.latex.{LaTeXdoc, LaTeXRenderable}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.rules.HTN.HTNrule
 import org.maraist.planrec.terms.Term.*
@@ -22,9 +23,11 @@ class Table[T, H, S](
   private val headColMap: Map[H, Int],
   private val stateRowMap: Map[Set[HState[T, H, S]], Int],
   private val shifts: Array[Array[Option[Int]]],
-  private val reduces: Array[Array[List[(Int, Int)]]],
-  private val sparks: Array[Array[List[List[Int]]]]
-) /* (using TermImpl[T, H, S]) */ {
+  private val reduces: Array[List[(Int, Int)]],
+  private val sparks: Array[List[List[Int]]]
+) /* (using TermImpl[T, H, S]) */
+    extends LaTeXRenderable {
+
   opaque type Row = Int
   opaque type Col = Int
 
@@ -35,13 +38,69 @@ class Table[T, H, S](
   inline def rowShift(state: Row, termHead: Col): Option[Row] =
     shifts(state)(termHead)
 
-  inline def rowReduces(state: Row, termHead: Col): List[(Row, Int)] =
-    reduces(state)(termHead)
+  inline def rowReduces(state: Row): List[(Row, Int)] = reduces(state)
 
-  inline def rowSparks(state: Row, termHead: Col): List[List[Row]] =
-    sparks(state)(termHead)
+  inline def rowSparks(state: Row): List[List[Row]] = sparks(state)
 
   val initial: Row = initialIndex
+
+  def toLaTeX(doc: LaTeXdoc): Unit = {
+    doc ++= "\\begin{center}\n"
+
+    val cline = s"\\cline{2-${3 + termHeads.length}}"
+    doc ++= "\\begin{supertabular}{r|c|c|"
+    for (i <- 0 until termHeads.length) do {
+      doc ++= "|c"
+    }
+    doc ++= "|}\n"
+    doc ++= "\\multicolumn{1}{c}{} & \\multicolumn{1}{c}{} & \\multicolumn{1}{c}{} "
+    for (i <- 0 until termHeads.length) do doc ++= s" & \\multicolumn{1}{c}{$i}"
+    doc ++= "\\\\\n"
+    doc ++= "\\multicolumn{1}{c}{} & \\multicolumn{1}{c}{Reduce} & \\multicolumn{1}{c}{Spark}"
+    for (i <- 0 until termHeads.length) do doc ++= s" & \\multicolumn{1}{c}{${termHeads(i)}}"
+    doc ++= s"\\\\ $cline\n"
+    for (i <- 0 until states.length) do {
+      doc ++= s"$i & "
+
+      val rs: List[(Int, Int)] = reduces(i)
+      rs.length match {
+        case 0 => doc ++= "---"
+        case 1 => rs(0) match {
+          case (rule, len) => doc ++= s"$rule [$len]"
+        }
+        case _ => {
+          doc ++= "\\begin{tabular}[c]{@{}c@{}}"
+          for ((rule, len) <- rs) {
+            doc ++= s"$rule [$len]\\\\"
+          }
+          doc ++= "\\end{tabular}"
+        }
+      }
+
+      doc ++= " & "
+      val ss: List[List[Int]] = sparks(i)
+      ss.length match {
+        case 0 => doc ++= "---"
+        case 1 => doc ++= ss(0).map(_.toString).mkString(", ")
+        case _ => {
+          doc ++= "\\begin{tabular}[c]{@{}c@{}}"
+          for (s <- ss) {
+            doc ++= s.map(_.toString).mkString(", ")
+            doc ++= "\\\\"
+          }
+          doc ++= "\\end{tabular}"
+        }
+      }
+
+      for (j <- 0 until termHeads.length) do {
+        doc ++= " & "
+        shifts(i)(j).map((r) => doc ++= r.toString)
+      }
+      doc ++= s" \\\\ $cline\n"
+    }
+    doc ++= "\\end{supertabular}\n"
+    doc ++= "\\end{center}\n"
+  }
 }
 
 object Table {
@@ -51,6 +110,42 @@ object Table {
     val dfa = HandleDFA(library)
     val labels: IndexedSeq[H] = dfa.labels
     val states: IndexedSeq[Set[HState[T, H, S]]] = dfa.states
+
+    val stations: Set[H] = {
+      val builder = Set.newBuilder[H]
+      for (state <- states; elem <- state) do elem match {
+        case Sparking(_, _) => { }
+        case AllItem(_, _, _) => { }
+        case OneItem(_, _) => { }
+        case ActItem(_, _) => { }
+        case h: H => builder += h
+      }
+      builder.result
+    }
+    // println(states)
+    // println(stations)
+
+    val stationHome: Map[H, Int] = {
+      val builder = Map.newBuilder[H, Int]
+
+      for (station <- stations) {
+        var home = -1
+        var bestSize = Int.MaxValue
+
+        for (i <- 0 until states.size) do {
+          val state = states(i)
+          if state.contains(station) && state.size < bestSize then {
+            home = i
+            bestSize = state.size
+          }
+        }
+
+        if (home > -1) then builder += ((station, home))
+      }
+
+      builder.result
+    }
+    // println(stationHome)
 
     val headCol: Map[H, Int] = {
       val builder = Map.newBuilder[H, Int]
@@ -69,7 +164,7 @@ object Table {
     val shifts = Array.tabulate(states.length, labels.length)((s, l) =>
       dfa.transitionIndex(s, l))
 
-    val reduces = Array.tabulate(states.length, labels.length)((s, l) => {
+    val reduces = Array.tabulate(states.length)((s) => {
       val buf = List.newBuilder[(Int, Int)]
 
       def pullFinalItem(item: Item[T, H, S])(using TermImpl[T, H, S]): Unit = {
@@ -77,36 +172,32 @@ object Table {
           buf += ((headCol(item.rule.goal.termHead), item.rule.length))
       }
 
-      dfa.transitionIndex(s, l) match {
-        case None => { }
-        case Some(r) => for(elem <- dfa.state(r)) do elem match {
-          case Station(_) => { }
-          case Sparking(_, item): Sparking[T, H, S] => pullFinalItem(item)
-          case i@AllItem(_, _, _): AllItem[T, H, S] => pullFinalItem(i)
-          case i@OneItem(_, _): OneItem[T, H, S] => pullFinalItem(i)
-          case i@ActItem(_, _): ActItem[T, H, S] => pullFinalItem(i)
-        }
+      for(elem <- dfa.state(s)) do elem match {
+        case Sparking(_, item): Sparking[T, H, S] => pullFinalItem(item)
+        case _: H => { }
+        case i@AllItem(_, _, _): AllItem[T, H, S] => pullFinalItem(i)
+        case i@OneItem(_, _): OneItem[T, H, S] => pullFinalItem(i)
+        case i@ActItem(_, _): ActItem[T, H, S] => pullFinalItem(i)
       }
 
       buf.result
     })
 
-    val sparks = Array.tabulate(states.length, labels.length)((s, l) => {
-      val buf = List.newBuilder[List[Int]]
+    val sparks = Array.tabulate(states.length)((s) => {
+      val buf = Set.newBuilder[List[Int]]
 
-      dfa.transitionIndex(s, l) match {
-        case None => { }
-        case Some(r) => for(elem <- dfa.state(r)) do elem match {
-          case Sparking(indirs, _): Sparking[T, H, S] => ???
-          case _ => { }
-        }
+      for(elem <- dfa.state(s)) do elem match {
+        case Sparking(indirs, _): Sparking[T, H, S] =>
+          buf += indirs.map(stationHome)
+        case _ => { }
       }
 
-      buf.result
+      buf.result.toList
     })
+    // sparks.map(println)
 
     new Table(
       dfa.initialStateIndex, labels.toVector, states.toVector,
-      headCol, stateRow, shifts, reduces, ???)
+      headCol, stateRow, shifts, reduces, sparks)
   }
 }

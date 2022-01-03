@@ -45,7 +45,7 @@ extends NFABuilder[
     // First add all of the rule heads as stations.
     for (rule <- library.rules) do {
       val head = rule.goal.termHead
-      val station = Station(head)
+      val station = head // Station(head)
 
       // Add the rule goal head as a station to the NFA if it is not
       // already present.
@@ -62,7 +62,7 @@ extends NFABuilder[
     // Process each rule, or stage it for processing.
     for (rule <- library.rules) do {
       val ruleGoalHead = rule.goal.termHead
-      val ruleGoalStation = Station(ruleGoalHead)
+      val ruleGoalStation = ruleGoalHead // Station(ruleGoalHead)
       val bareInitial: Item[T, H, S] = initialItem(rule)
       val stateItem: Item[T, H, S] = bareInitial
 
@@ -83,7 +83,7 @@ extends NFABuilder[
           for (t <- bareInitial.triggers)
             do addTransition(stateItem, t, finalItemState)
           for (s <- subgoals)
-            do addETransition(stateItem, Station(s.termHead))
+            do addETransition(stateItem, s.termHead /* Station(s.termHead) */)
         }
 
         case ActItem(r, _) => {
@@ -211,7 +211,7 @@ extends NFABuilder[
             print(s"    ${GREEN}Added ε${BLACK}")
             println(s" $nextItem --> ${rule.subgoals(idx).termHead}")
           }
-          addETransition(nextItem, Station(rule.subgoals(idx).termHead))
+          addETransition(nextItem, rule.subgoals(idx).termHead /* Station(rule.subgoals(idx).termHead) */)
         })
     }
 
@@ -313,7 +313,7 @@ extends NFABuilder[
           case Sparking(indirects, _): Sparking[T, H, S] =>
             for (ind <- indirects)
               do this.plotAnnotationEdge(
-                sb, stateMap(s), stateMap(Station(ind)))
+                sb, stateMap(s), stateMap(ind /* Station(ind) */))
 
           case _ => { }
         })
@@ -324,7 +324,7 @@ extends NFABuilder[
           case Sparking(ids, _): Sparking[T, H, S] => {
             ids.map((station) => nfaStationBases.getOrElseUpdate(station, {
               val (stationClosed, _) =
-                epsilonCloseIndices(Set(indexOf(Station(station))))
+                epsilonCloseIndices(Set(indexOf(station /* Station(station) */)))
               tracker.getIndex(stationClosed)
             }))
           }
@@ -409,7 +409,7 @@ extends NFABuilder[
       case Sparking(indirects, _): Sparking[T, H, S] => {
         val sIdx = stateMap(s)
         for (ind <- indirects) {
-          plotAnnotationEdge(sb, sIdx, stateMap(Station(ind)))
+          plotAnnotationEdge(sb, sIdx, stateMap(ind /* Station(ind) */))
         }
       }
 

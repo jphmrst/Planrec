@@ -14,7 +14,8 @@ import org.maraist.util.FilesCleaner
 import org.maraist.latex.{LaTeXdoc,Sampler}
 import org.maraist.planrec.rules.HTNLib
 import org.maraist.planrec.terms.Term.TermImpl
-import org.maraist.planrec.yr.{HandleFinder, HandleNFA, HandleDFA, HState}
+import org.maraist.planrec.yr.{
+  HandleFinder, HandleNFA, HandleDFA, HState, Table}
 
 trait Sample {
   type Term
@@ -136,6 +137,11 @@ object Sample extends Sampler {
     // println("\nFrom Sample for DFA " + tag + ":")
     graphable(guide, cleaner, dfa, tag+"DFA", sample.dfaWidth)
 
+    guide ++= "\\subsection*{Table}\n"
+    val table = Table(library)
+    table.toLaTeX(guide)
+    // graphable(guide, cleaner, dfa, tag+"DFA", sample.dfaWidth)
+
     // val table = Table(library)
   }
 
@@ -171,6 +177,7 @@ object Sample extends Sampler {
       HTNs.load
       val guide = new LaTeXdoc("samples")
       guide.addPackage("geometry", "margin=1in")
+      guide.addPackage("supertabular")
       guide.addPackage("times")
       guide.addPackage("graphicx")
       // guide.addPackage("multicol")
