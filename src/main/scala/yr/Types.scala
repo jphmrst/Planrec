@@ -22,13 +22,6 @@ import TriggerHint.*
 import org.maraist.planrec.terms.{>?<, >><<}
 import scala.compiletime.ops.any
 
-/**
-  * Indirection node at the head of a stack fragment in the lower graph
-  *
-  * @param goal Goal term for which this substack was spawned.
-  */
-case class Ind[T, H, S](val goal: T)
-
 // case class NfaAnnotation[T, H, S](indirects: List[H])
 
 // case class DfaAnnotation[T, H, S](indirects: List[(H, Int)])

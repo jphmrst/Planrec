@@ -15,29 +15,32 @@ import scala.collection.mutable.HashMap
   * Result of traversing the upper graph for recognizing one
   * observation.
   */
-type UpperTraversalResult[T, H, S] = (Upper[T, H, S], List[H])
+type UpperTraversalResult[T, H, S, C, R] =
+  (Option[Upper[T, H, S, C, R]], Option[H])
 
 /**
   * Cache of upper graph nodes across recognition of one observation.
   *
   */
-type UpperCache[T, H, S] = HashMap[Upper[T, H, S], Upper[T, H, S]]
+type UpperCache[T, H, S, C, R] = HashMap[Upper[T, H, S, C, R], Upper[T, H, S, C, R]]
 
 /**
   * Combined cache upper and lower graph nodes across recognition of
   * one observation.
   *
   */
-class Cache[T, H, S](
-  val upper: UpperCache[T, H, S] = new UpperCache[T, H, S]) {
-  val lower = new LowerCache[T, H, S]
+class Cache[T, H, S, C, R](
+  val upper: UpperCache[T, H, S, C, R] = new UpperCache[T, H, S, C, R]
+) {
+  val lower = new LowerCache[T, H, S, C, R]
 }
 
 /**
   * Common superclass of upper graph nodes.
   */
-trait Upper[T, H, S] {
-  def recognize(term: T, cache: Cache[T, H, S]): UpperTraversalResult[T, H, S]
+sealed trait Upper[T, H, S, C, R] {
+  def recognize(term: T, cache: Cache[T, H, S, C, R]):
+      UpperTraversalResult[T, H, S, C, R]
 }
 
 /**
@@ -46,10 +49,11 @@ trait Upper[T, H, S] {
   *
   * @param subs Subgraphs each representing a possible parse.
   */
-class UpperAny[T, H, S](subs: List[UpperOne[T, H, S] | UpperLower[T, H, S]])
-    extends Upper[T, H, S] {
-  override def recognize(term: T, cache: Cache[T, H, S]):
-      UpperTraversalResult[T, H, S] = ???
+class UpperOne[T, H, S, C, R](
+  subs: List[UpperAll[T, H, S, C, R] | UpperLower[T, H, S, C, R]]
+) extends Upper[T, H, S, C, R] {
+  override def recognize(term: T, cache: Cache[T, H, S, C, R]):
+      UpperTraversalResult[T, H, S, C, R] = ???
 }
 
 /**
@@ -60,10 +64,14 @@ class UpperAny[T, H, S](subs: List[UpperOne[T, H, S] | UpperLower[T, H, S]])
   * of each overlapping subgoal.
   * @param base Lower graph node of the overall parse state.
   */
-class UpperOne[T, H, S](pars: List[Upper[T, H, S]], base: Lower[T, H, S])
-    extends Upper[T, H, S] {
-  override def recognize(term: T, cache: Cache[T, H, S]):
-      UpperTraversalResult[T, H, S] = ???
+class UpperAll[T, H, S, C, R](
+  pars: List[Upper[T, H, S, C, R]],
+  base: Lower[T, H, S, C, R]
+
+) extends Upper[T, H, S, C, R] {
+
+  override def recognize(term: T, cache: Cache[T, H, S, C, R]):
+      UpperTraversalResult[T, H, S, C, R] = ???
 }
 
 /**
@@ -72,7 +80,8 @@ class UpperOne[T, H, S](pars: List[Upper[T, H, S]], base: Lower[T, H, S])
   * @param stack Lower graph node corresponding at the top of the
   * parse graph.
   */
-class UpperLower[T, H, S](stack: Lower[T, H, S]) extends Upper[T, H, S] {
-  override def recognize(term: T, cache: Cache[T, H, S]):
-      UpperTraversalResult[T, H, S] = ???
+class UpperLower[T, H, S, C, R](stack: Lower[T, H, S, C, R])
+extends Upper[T, H, S, C, R] {
+  override def recognize(term: T, cache: Cache[T, H, S, C, R]):
+      UpperTraversalResult[T, H, S, C, R] = ???
 }
